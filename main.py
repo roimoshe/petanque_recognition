@@ -7,12 +7,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import ndimage as ndi
 from skimage.feature import peak_local_max
-
+import matplotlib.image as mpimg
 
 def edgeDetector(image):
-  image_uint8 = image.astype(np.uint8) 
-  edge_map = cv2.Canny(image_uint8,330,650)
-  return edge_map
+    image = cv2.bilateralFilter(image,9,75,75)
+    cv2.imshow('edges',image)
+    cv2.waitKey(0)
+    image_uint8 = image.astype(np.uint8) 
+    edge_map = cv2.Canny(image_uint8,100,240)
+    return edge_map
 
 
 def createKernel(r):
@@ -41,18 +44,18 @@ def HoughCircles(edge_map):
   #run the convolution on every pixle and save the result
   #find the resualts local maxima over a threshold if there are, and append them in the answer
 
-  for r in range(25,100):
+  for r in range(31,41):
     kernel = createKernel(r)  #creating the kernel for the matching radius
     accumulator =  cv2.filter2D(new_edge_map ,ddepth=cv2.CV_32S,kernel=kernel) #convoluting the picture borders with the kernel 
     #finding local maxima
     image_max = ndi.maximum_filter(accumulator, size=20, mode='constant') #finding local maximums in the convolution result (centers of circles)
     coordinates = peak_local_max(accumulator, min_distance=20, num_peaks= 6) 
-    threshold = 2*np.pi*r -105 
+    threshold = 0.2*(2*np.pi*r)
     answers = list(filter(lambda x: (accumulator[x[0]][x[1]] > threshold), coordinates)) #checking only for local maximas over certain threshold
     for ans in answers: #appending the results 
       flag = False
       for point in circles_center1:
-        if abs(ans[0]-point[1])+abs(ans[1]-point[0]) < 40:
+        if abs(ans[0]-point[1])+abs(ans[1]-point[0]) < 20:
           if accumulator[ans[0]][ans[1]] > accumulator[point[1]][point[0]]:
             circles_center1.remove(point)  #remove the lower value point
             circles_center1.append([ans[1], ans[0], r])
@@ -91,14 +94,16 @@ def hough(img):
     # fig.savefig('out.png', dpi=400)
     # Step 1: Produce an edge map from the image using an edge detector
     edges = edgeDetector(img)
-    plt.imshow(edges, cmap='gray')
+    cv2.imshow('edges',edges)
+    cv2.waitKey(0)
+    print("after edge show")
     # Step 2: Detect circles in the image using Hough transform
     circles_center, circles_radius = HoughCircles(edges)    
     # Step 3: Plot the detected circles on top of the original coins image
     plotCircles(img,circles_center,circles_radius)
 
 def main(arguments):
-    img = cv2.imread('/Users/roi_moshe/Library/Mobile Documents/com~apple~CloudDocs/courses/intro_to_vision/final_project/petanque_recognition/images/images1.jpg', cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread('images/image1.jpg', cv2.IMREAD_GRAYSCALE)
     hough(img)
     return 0
 
