@@ -69,7 +69,7 @@ def HoughCircles(edge_map):
   for [x,y,z] in circles_center1:
     circles_center.append([x,y])
     circles_radius.append(z)
-    print("x = ", x, " y = ", y," r = ", z)
+    # print("x = ", x, " y = ", y," r = ", z)
 
   return circles_center, circles_radius
 
@@ -86,7 +86,7 @@ def plotCircles(image,circles_center,circles_radius):
       circ = plt.Circle(center_coordinates, radius, color='blue', fill=False)
       ax.add_artist(circ)
     # plt.imsave("output.png", image)
-    fig.savefig("tmp/step4.png", dpi=400)
+    return fig
 
   
  
@@ -94,11 +94,11 @@ def hough(img):
     edges = edgeDetector(img)
     # cv2.imshow('edges',edges)
     # cv2.waitKey(0)
-    print("after edge show")
+    # print("after edge show")
     # Step 2: Detect circles in the image using Hough transform
     circles_center, circles_radius = HoughCircles(edges)    
     # Step 3: Plot the detected circles on top of the original coins image
-    plotCircles(img,circles_center,circles_radius)
+    return plotCircles(img,circles_center,circles_radius)
 
 def histogram(img_path):
     img = cv2.imread(img_path)
@@ -111,7 +111,7 @@ def histogram(img_path):
     avg=np.array([0,0,0])
     for i in range(10):
         avg+=np.array(img[int(height/2)+i][int(width/2)+i])
-    print(avg/10)
+    # print(avg/10)
     plt.show()
     # cv2.imshow('hist',hist)
     # cv2.waitKey(0)
@@ -161,3 +161,8 @@ def kmeans(img_path, image_space_representation):
     plt.axis("off")
     plt.imshow(bar)
     plt.show()
+
+def save_photo(path, img, verbosity):
+  cv2.imwrite(path,img)
+  if verbosity:
+    print("image saved in: {}".format(path))

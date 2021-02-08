@@ -3,15 +3,16 @@ import sys
 from src import *
 
 def main():
-    img_path = 'images/image5.jpg'
-    img = cv2.imread(img_path)
-    cv2.imwrite('tmp/step1.jpg',img)
-    img=kmeans.kmeans(img, cv2.COLOR_BGR2LAB)
-    cv2.imwrite('tmp/step2.jpg',img)
-    img=lines.houghLines(img)
-    cv2.imwrite('tmp/step3.jpg',img)
-    util.hough(img)
-
+    for i in range(5,18):
+        img_path = 'images/image{}.jpg'.format(i)
+        img = cv2.imread(img_path)
+        util.save_photo('build/image{}_step1.jpg'.format(i),img, True)
+        img=kmeans.kmeans(img, cv2.COLOR_BGR2LAB)
+        util.save_photo('build/image{}_step2.jpg'.format(i),img, True)
+        img=lines.houghLines(img)
+        util.save_photo('build/image{}_step3.jpg'.format(i),img, True)
+        fig = util.hough(img)
+        fig.savefig("build/image{}_step4.png".format(i), dpi=400)
     return 0
 
 if __name__ == '__main__':

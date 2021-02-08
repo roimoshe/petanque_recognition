@@ -18,9 +18,9 @@ def houghLines(img):
     # Output "lines" is an array containing endpoints of detected line segments
     lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),
                         min_line_length, max_line_gap)
-    print(lines)
+    # print(lines)
     
-    print(img.shape)
+    # print(img.shape)
     for line in lines:
         for x1,y1,x2,y2 in line:
             for i in range(img.shape[1]):
