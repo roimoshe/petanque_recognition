@@ -98,7 +98,9 @@ def hough(img):
     # Step 2: Detect circles in the image using Hough transform
     circles_center, circles_radius = HoughCircles(edges)    
     # Step 3: Plot the detected circles on top of the original coins image
-    return plotCircles(img,circles_center,circles_radius)
+    fig = plotCircles(img,circles_center,circles_radius)
+    fig.savefig("build/image_with_circles.png", dpi=400)
+    return cv2.imread("build/image_with_circles.png")
 
 def histogram(img_path):
     img = cv2.imread(img_path)
