@@ -2,6 +2,7 @@ from sklearn.cluster import KMeans
 import cv2
 import numpy as np
 from scipy import ndimage
+from . import util
 
 
 def recreate_image(codebook, labels, w, h, original):
@@ -17,13 +18,16 @@ def f(x, lab):
 def flip(x):
     return 1-x
 
-def kmeans(image_orig, image_space_representation):
+def kmeans(image_orig, image_space_representation, verbose):
     w, h, d = original_shape = tuple(image_orig.shape)
     image = cv2.cvtColor(image_orig, image_space_representation) / 255
+    image = cv2.bilateralFilter(np.float32(image),9,200,200)
     image = image.reshape((image.shape[0] * image.shape[1], d))
     # maybe blur here
-    clt = KMeans(n_clusters = 3).fit(image)
+    clt = KMeans(n_clusters = 4).fit(image)
     labels = clt.predict(image)
+    if verbose:
+        util.save_photo('build/labels_of_kmeans.jpg',100 * labels.reshape((w, h)), True)
     court_label = np.bincount(labels).argmax()
     
     f2 = np.vectorize(f)

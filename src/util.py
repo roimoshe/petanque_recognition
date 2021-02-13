@@ -90,7 +90,7 @@ def plotCircles(image,circles_center,circles_radius):
 
   
  
-def hough(img):
+def hough(img, verbose):
     edges = edgeDetector(img)
     # cv2.imshow('edges',edges)
     # cv2.waitKey(0)

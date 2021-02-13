@@ -2,7 +2,7 @@ from . import util
 import cv2
 import numpy as np
 
-def houghLines(img):
+def houghLines(img, verbose):
     # Apply edge detection method on the image
     edges = util.edgeDetector(img)
     cv2.imshow("edges", edges)

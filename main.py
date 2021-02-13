@@ -4,14 +4,14 @@ from src import *
 import argparse
 
 
-def step1(img):
-    return kmeans.kmeans(img, cv2.COLOR_BGR2LAB)
+def step1(img, verbose):
+    return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, verbose)
 
-def step2(img):
-    return lines.houghLines(img)
+def step2(img, verbose):
+    return lines.houghLines(img, verbose)
 
-def step3(img):
-    return util.hough(img)
+def step3(img, verbose):
+    return util.hough(img, verbose)
 
 steps = [step1, step2, step3]
 
@@ -20,6 +20,7 @@ def main(arguments):
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-i","--image_num", type=int, help="Input image number", default=1)
     parser.add_argument("-q","--quick", action='store_true', help="Input image number")
+    parser.add_argument("-v","--verbose", action='store_true', help="verbosity level")
     args = parser.parse_args(arguments)
 
     if args.image_num < 0 or args.step > 17:
@@ -39,7 +40,7 @@ def main(arguments):
         img = cv2.imread('build/image{}_step{}.jpg'.format(args.image_num, args.step - 1))
 
     for i in range(args.step - 1, len(steps)):
-        img = steps[i](img)
+        img = steps[i](img, args.verbose)
         if not args.quick:
             util.save_photo('build/image{}_step{}.jpg'.format(args.image_num, i+1),img, True)
     if args.quick:
