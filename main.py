@@ -34,12 +34,13 @@ steps = [step1, step2, step3, step4, step5]
 def main(arguments):
     parser = argparse.ArgumentParser(description="Petanque recognition")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
+    parser.add_argument("-e","--end_step", type=int, help="Input step number to end in", default=len(steps))
     parser.add_argument("-i","--image_num", type=int, help="Input image number", default=1)
     parser.add_argument("-q","--quick", action='store_true', help="Input image number")
     parser.add_argument("-v","--verbose", action='store_true', help="verbosity level", default=True)
     parser.add_argument("-t","--train", action='store_true', help="train mode")
     parser.add_argument("-c","--clean", action='store_true', help="clean build")
-    parser.add_argument("-N","--no_previous_step", action='store_true', help="run from step 'step' with the original photo")
+    parser.add_argument("-N","--no_previous_step", action='store_true', help="run from step 'step' with the original photo")   
     args = parser.parse_args(arguments)
 
     if args.clean:
@@ -72,7 +73,7 @@ def main(arguments):
         print("image_num: ", args.image_num,", start step: ", args.step)
         img = cv2.imread('build/image{}_step{}.jpg'.format(args.image_num, args.step - 1))
 
-    for i in range(args.step - 1, len(steps)):
+    for i in range(args.step - 1, args.end_step):
         img = steps[i](img, args.verbose)
         if not args.quick:
             util.save_photo('build/image{}_step{}.jpg'.format(args.image_num, i+1),img, True)

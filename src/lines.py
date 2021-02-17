@@ -11,33 +11,40 @@ def houghLines(img, verbose):
     theta = np.pi / 180  # angular resolution in radians of the Hough grid
     threshold = 50  # minimum number of votes (intersections in Hough grid cell)
     min_line_length = 400  # minimum number of pixels making up a line
-    max_line_gap = 300  # maximum gap in pixels between connectable line segments
-    line_image = np.copy(img) * 0  # creating a blank to draw lines on
+    max_line_gap = 100  # maximum gap in pixels between connectable line segments
 
     # Run Hough on edge detected image
     # Output "lines" is an array containing endpoints of detected line segments
     lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),
                         min_line_length, max_line_gap)
-    # print(lines)
-    
-    # print(img.shape)
+    if verbose:
+        print(lines)
+
     for line in lines:
-        for x1,y1,x2,y2 in line:
-            for i in range(img.shape[1]):
-                if x1==x2:
-                    continue
-                for j in range(min(int(y1+(i-x1)*(y2-y1)/(x2-x1)),img.shape[0])) :
-                    img[j][i] *= 0
+        x1,y1,x2,y2 = line[0]
+        if verbose:
+            print(x1,y1,x2,y2)
+        img = cv2.line(img,(x1,y1),(x2,y2),(80,80,200),5)
+    return img
+    # print(img.shape)
+    # for line in lines:
+    #     for x1,y1,x2,y2 in line:
+    #         for i in range(img.shape[1]):
+    #             if x1==x2:
+    #                 continue
+    #             for j in range(min(int(y1+(i-x1)*(y2-y1)/(x2-x1)),img.shape[0])) :
+    #                 img[j][i] *= 0
             # cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0),5)
     
     # cv2.imwrite('tmp/lines.jpg',line_image)
     # # Draw the lines on the  image
-    # final = cv2.addWeighted(img, 0.8, line_image, 1, 0)
+    # img*=0
+    # img = cv2.addWeighted(img, 0.8, line_image, 1, 0)
     # cv2.imwrite('tmp/houghlines5.jpg',final)
-    return img
+    # return img
     
-    # # The below for loop runs till r and theta values
-    # # are in the range of the 2d array
+    # The below for loop runs till r and theta values
+    # are in the range of the 2d array
     # for line in lines:
     #     for r, theta in line:
     #         # Stores the value of cos(theta) in a
@@ -68,5 +75,6 @@ def houghLines(img, verbose):
 
     #         cv2.line(img, (x1, y1), (x2, y2), ((0,0,255)), 2)
 
-    # cv2.imshow("Result Image", img)
-    # cv2.waitKey(0)
+    # # cv2.imshow("Result Image", img)
+    # # cv2.waitKey(0)
+    # return img
