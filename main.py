@@ -7,15 +7,18 @@ import os
 import numpy as np
 
 def step1(img, verbose):
-    img = cv2.bilateralFilter(np.float32(img),15,800,800)
-    kernel = np.ones((5,5),np.float32)/25
-    return cv2.filter2D(img,-1,kernel)
+    # img = cv2.bilateralFilter(np.float32(img),15,800,800)
+    # kernel = np.ones((5,5),np.float32)/25
+    # return cv2.filter2D(img,-1,kernel)
+    return img
 
 def step2(img, verbose):
-    return util.edgeDetector(img)
+    if verbose:
+        print("started step 2")
+    return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, verbose)
 
 def step3(img, verbose):
-    return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, verbose)
+    return util.edgeDetector(img)
 
 def step4(img, verbose):
     return lines.houghLines(img, verbose)
@@ -33,7 +36,7 @@ def main(arguments):
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-i","--image_num", type=int, help="Input image number", default=1)
     parser.add_argument("-q","--quick", action='store_true', help="Input image number")
-    parser.add_argument("-v","--verbose", action='store_true', help="verbosity level")
+    parser.add_argument("-v","--verbose", action='store_true', help="verbosity level", default=True)
     parser.add_argument("-t","--train", action='store_true', help="train mode")
     parser.add_argument("-c","--clean", action='store_true', help="clean build")
     parser.add_argument("-N","--no_previous_step", action='store_true', help="run from step 'step' with the original photo")
@@ -61,7 +64,7 @@ def main(arguments):
         print("image_num: ", args.image_num,", start step: ", args.step)
         if args.no_previous_step:
             print("no_previous_step choosen!!")
-        img_path = 'images/image{}.jpg'.format(args.image_num)
+        img_path = 'images/day1/image{}.jpg'.format(args.image_num)
         img = cv2.imread(img_path)
         if not args.quick:
             util.save_photo('build/image{}.jpg'.format(args.image_num),img, True)

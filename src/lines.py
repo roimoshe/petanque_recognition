@@ -5,7 +5,7 @@ import numpy as np
 def houghLines(img, verbose):
     # Apply edge detection method on the image
     edges = util.edgeDetector(img)
-    cv2.imshow("edges", edges)
+    # cv2.imshow("edges", edges)
     # This returns an array of r and theta values
     rho = 1  # distance resolution in pixels of the Hough grid
     theta = np.pi / 180  # angular resolution in radians of the Hough grid
