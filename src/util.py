@@ -12,11 +12,8 @@ import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
 
 def edgeDetector(image):
-    image = cv2.bilateralFilter(image,9,75,75)
-    # cv2.imshow('edges',image)
-    # cv2.waitKey(0)
     image_uint8 = image.astype(np.uint8) 
-    edge_map = cv2.Canny(image_uint8,80,220)
+    edge_map = cv2.Canny(image_uint8,5,85)
     return edge_map
 
 
@@ -31,7 +28,7 @@ def createKernel(r):
   kernel = np.array(kernel).astype(int)
   return kernel
 
-def HoughCircles(edge_map):
+def HoughCircles(edge_map, verbose):
   new_edge_map = []
   for number in edge_map:
     new_edge_map.append(number / 255) #making the edge_map contain values of only [1,0]
@@ -46,13 +43,13 @@ def HoughCircles(edge_map):
   #run the convolution on every pixle and save the result
   #find the resualts local maxima over a threshold if there are, and append them in the answer
 
-  for r in range(8,15):
+  for r in range(28,35):
     kernel = createKernel(r)  #creating the kernel for the matching radius
     accumulator =  cv2.filter2D(new_edge_map ,ddepth=cv2.CV_32S,kernel=kernel) #convoluting the picture borders with the kernel 
     #finding local maxima
     image_max = ndi.maximum_filter(accumulator, size=20, mode='constant') #finding local maximums in the convolution result (centers of circles)
-    coordinates = peak_local_max(accumulator, min_distance=20, num_peaks= 6) 
-    threshold = 0.2*(2*np.pi*r)
+    coordinates = peak_local_max(accumulator, min_distance=20, num_peaks= 10) 
+    threshold = 0.17*(2*np.pi*r)
     answers = list(filter(lambda x: (accumulator[x[0]][x[1]] > threshold), coordinates)) #checking only for local maximas over certain threshold
     for ans in answers: #appending the results 
       flag = False
@@ -69,7 +66,8 @@ def HoughCircles(edge_map):
   for [x,y,z] in circles_center1:
     circles_center.append([x,y])
     circles_radius.append(z)
-    # print("x = ", x, " y = ", y," r = ", z)
+    if verbose:
+      print("x = ", x, " y = ", y," r = ", z)
 
   return circles_center, circles_radius
 
@@ -91,12 +89,9 @@ def plotCircles(image,circles_center,circles_radius):
   
  
 def hough(img, verbose):
-    edges = edgeDetector(img)
-    # cv2.imshow('edges',edges)
-    # cv2.waitKey(0)
-    # print("after edge show")
+    edges = img
     # Step 2: Detect circles in the image using Hough transform
-    circles_center, circles_radius = HoughCircles(edges)    
+    circles_center, circles_radius = HoughCircles(edges, verbose)    
     # Step 3: Plot the detected circles on top of the original coins image
     fig = plotCircles(img,circles_center,circles_radius)
     fig.savefig("build/image_with_circles.png", dpi=400)
@@ -168,3 +163,17 @@ def save_photo(path, img, verbosity):
   cv2.imwrite(path,img)
   if verbosity:
     print("image saved in: {}".format(path))
+
+def extract_frames():
+    count = 0
+    vidcap = cv2.VideoCapture("images/video1/movie1.mov")
+    success,image = vidcap.read()
+    success = True
+    while success:
+        vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*8000))    # added this line 
+        success,image = vidcap.read()
+        print ('Read a new frame: ', success)
+        if not success:
+            break
+        cv2.imwrite( "build/frame%d.jpg" % count, image)     # save frame as JPEG file
+        count = count + 1
