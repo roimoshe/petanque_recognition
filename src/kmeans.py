@@ -22,7 +22,6 @@ def kmeans(blurred_image, image_space_representation, n_clusters, min_max, origi
     image = cv2.cvtColor(blurred_image, image_space_representation) / 255
     image = cv2.bilateralFilter(np.float32(image), 9, 200, 200)
     image = image.reshape((image.shape[0] * image.shape[1], d))
-    # maybe blur here
     clt = KMeans(n_clusters=n_clusters).fit(image)
     labels = clt.predict(image)
     if verbose:
@@ -37,7 +36,7 @@ def kmeans(blurred_image, image_space_representation, n_clusters, min_max, origi
 
     labels = labels.reshape((w, h))
     labels = ndimage.binary_fill_holes(labels, structure=np.ones((11, 11))).astype(int)
-    labels = 1 - ndimage.binary_fill_holes(1 - labels, structure=np.ones((2, 2))).astype(int)
+    # labels = 1 - ndimage.binary_fill_holes(1 - labels, structure=np.ones((2, 2))).astype(int)
     labels = labels.reshape((w * h))
     img_no_backgroung = recreate_image(clt.cluster_centers_, labels, w, h, original_image)
     return img_no_backgroung

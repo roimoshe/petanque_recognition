@@ -31,14 +31,14 @@ def hough_lines_step(img, verbose):
     return lines.houghLines(img, original_image, verbose)
 
 def hough_circles_step(img, verbose):
-    return util.hough(img, verbose)
+    return houghCircles.hough_circles(img, verbose)
 
 def train():
     img = cv2.imread("images/day1/image38.png")
     ksize = (10, 10)
     img = cv2.blur(img, ksize, cv2.BORDER_DEFAULT)
     util.save_photo('build/blur_zoom_ball.jpg', img, True)
-    util.save_photo('build/hough_zoom_ball.jpg', util.hough(img, True), True)
+    # util.save_photo('build/hough_zoom_ball.jpg', util.hough(img, True), True)
     # util.pca()
 
 main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_lines_step, "hough_lines_step")]
@@ -81,13 +81,13 @@ def main(arguments):
         print("image_num: ", args.image_num,", start step: ", args.step)
         if args.no_previous_step:
             print("no_previous_step choosen!!")
-        img_path = 'images/day1/image{}.jpg'.format(args.image_num)
+        img_path = 'images/video4/frame{}.jpg'.format(args.image_num)
         img = cv2.imread(img_path)
         original_image = img.copy()
         if not args.quick:
             util.save_photo('build/image{}.jpg'.format(args.image_num),img, True)
     else:
-        img_path = 'images/day1/image{}.jpg'.format(args.image_num)
+        img_path = 'images/video4/frame{}.jpg'.format(args.image_num)
         original_image = cv2.imread(img_path)
         print("image_num: ", args.image_num,", start step: ", args.step)
         img = cv2.imread('build/image{}_step{}.jpg'.format(args.image_num, args.step - 1))
