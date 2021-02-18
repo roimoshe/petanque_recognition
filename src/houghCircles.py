@@ -10,6 +10,7 @@ from skimage.feature import peak_local_max
 from skimage import io, color
 import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
+from . import util
 
 def createKernel(r):
     color = (255, 255, 255)
@@ -37,7 +38,7 @@ def HoughCircles(edge_map, verbose):
     # run the convolution on every pixle and save the result
     # find the resualts local maxima over a threshold if there are, and append them in the answer
 
-    for r in range(28, 35):
+    for r in range(12, 18):
         kernel = createKernel(r)  # creating the kernel for the matching radius
         accumulator = cv2.filter2D(new_edge_map, ddepth=cv2.CV_32S,
                                    kernel=kernel)  # convoluting the picture borders with the kernel
@@ -45,7 +46,7 @@ def HoughCircles(edge_map, verbose):
         image_max = ndi.maximum_filter(accumulator, size=20,
                                        mode='constant')  # finding local maximums in the convolution result (centers of circles)
         coordinates = peak_local_max(accumulator, min_distance=20, num_peaks=10)
-        threshold = 0.17 * (2 * np.pi * r)
+        threshold = 0.35 * (2 * np.pi * r)
         answers = list(filter(lambda x: (accumulator[x[0]][x[1]] > threshold),
                               coordinates))  # checking only for local maximas over certain threshold
         for ans in answers:  # appending the results
@@ -85,11 +86,18 @@ def plotCircles(image, circles_center, circles_radius):
     return fig
 
 
-def hough_circles(img, verbose):
+def hough_circles(img, original_image, verbose):
     edges = img
     # Step 2: Detect circles in the image using Hough transform
     circles_center, circles_radius = HoughCircles(edges, verbose)
     # Step 3: Plot the detected circles on top of the original coins image
-    fig = plotCircles(img, circles_center, circles_radius)
-    fig.savefig("build/image_with_circles.png", dpi=400)
-    return cv2.imread("build/image_with_circles.png")
+    for i in range(len(circles_center)):
+        # draw the outer circle
+        cimg = cv2.circle(original_image, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0), 2)
+        # draw the center of the circle
+        cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), 2, (0, 0, 255), 3)
+    
+    if verbose:
+        fig = plotCircles(img, circles_center, circles_radius)
+        fig.savefig("build/circles_on_edge_map.png", dpi=400)
+    return cimg

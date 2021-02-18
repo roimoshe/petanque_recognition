@@ -12,6 +12,18 @@ import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
 
 
+def burn_blob_frame_step(img, num_of_pixels, verbose):
+    mask = np.ones(img.shape[:2],np.uint8)
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            if sum(img[i][j]) == 0:
+                x_l = max(0, j-num_of_pixels)
+                x_r = min(img.shape[1], j+num_of_pixels)
+                y_u = max(0, i-num_of_pixels)
+                y_d = min(img.shape[0], i+num_of_pixels)
+                mask[y_u:y_d,x_l:x_r]=0
+    return cv2.bitwise_and(img,img,mask = mask)
+
 def edgeDetector(image, blur_size, verbose):
     ksize = (5, 5) #TODO figure out both of the parameters
     image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
