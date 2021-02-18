@@ -13,13 +13,17 @@ from sklearn.cluster import KMeans
 
 
 def edgeDetector(image, blur_size, verbose):
-    ksize = (blur_size, blur_size)
-    # image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
-    image = cv2.bilateralFilter(np.float32(image), 50, 1000, 1000)
+    ksize = (5, 5) #TODO figure out both of the parameters
+    image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
+
+    if verbose:
+        save_photo('build/before_bilateral.jpg', image, True)
+    image = cv2.medianBlur(image, 11)
+    # image = cv2.bilateralFilter(np.float32(image), 20, 200, 200)
     if verbose:
         save_photo('build/bilateral.jpg', image, True)
     image_uint8 = image.astype(np.uint8)
-    edge_map = cv2.Canny(image_uint8, 30, 40)
+    edge_map = cv2.Canny(image_uint8, 60, 120)
     return edge_map
 
 

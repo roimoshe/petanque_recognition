@@ -25,7 +25,7 @@ def kmeans_step(img, verbose):
     return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, 3, "max", original_image, verbose)
 
 def edge_detector_step(img, verbose):
-    return util.edgeDetector(img, 10, verbose)
+    return util.edgeDetector(img, 2, verbose)
 
 def hough_lines_step(img, verbose):
     return lines.houghLines(img, original_image, verbose)
@@ -41,7 +41,7 @@ def train():
     # util.save_photo('build/hough_zoom_ball.jpg', util.hough(img, True), True)
     # util.pca()
 
-main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_lines_step, "hough_lines_step")]
+main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
 plans     = [ main_plan ] 
 
 def main(arguments):
