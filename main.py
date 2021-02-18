@@ -6,15 +6,20 @@ import shutil
 import os
 import numpy as np
 
-def blur_step(img, verbose):
-    ksize = (100, 100)
-    return cv2.blur(img, ksize, cv2.BORDER_DEFAULT)
+class Step:
+  def __init__(self, function, name):
+    self.function = function
+    self.name = name
 
 def bilateral_and_blur_step(img, verbose):
     img = cv2.bilateralFilter(np.float32(img),15,800,800)
     kernel = np.ones((5,5),np.float32)/25
     return cv2.filter2D(img,-1,kernel)
     return img
+
+def blur_step(img, verbose):
+    ksize = (100, 100)
+    return cv2.blur(img, ksize, cv2.BORDER_DEFAULT)
 
 def kmeans_step(img, verbose):
     return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, 3, "max", original_image, verbose)
@@ -36,7 +41,7 @@ def train():
     util.save_photo('build/hough_zoom_ball.jpg', util.hough(img, True), True)
     # util.pca()
 
-main_plan = [blur_step, kmeans_step, edge_detector_step, hough_lines_step]
+main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_lines_step, "hough_lines_step")]
 plans     = [ main_plan ] 
 
 def main(arguments):
@@ -88,9 +93,10 @@ def main(arguments):
         img = cv2.imread('build/image{}_step{}.jpg'.format(args.image_num, args.step - 1))
 
     for i in range(args.step - 1, args.end_step):
-        img = plans[args.plan_num][i](img, args.verbose)
+        next_step = plans[args.plan_num][i]
+        img = next_step.function(img, args.verbose)
         if not args.quick:
-            util.save_photo('build/image{}_step{}.jpg'.format(args.image_num, i+1),img, True)
+            util.save_photo('build/image{}_{}_{}.jpg'.format(args.image_num, i+1, next_step.name),img, True)
     if args.quick:
         util.save_photo('build/image{}_step{}.jpg'.format(args.image_num, i+1),img, True)
     return 0
