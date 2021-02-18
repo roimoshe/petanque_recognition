@@ -11,9 +11,14 @@ from skimage import io, color
 import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
 
-def edgeDetector(image):
+def edgeDetector(image, blur_size, verbose):
+    ksize = (blur_size, blur_size)
+    # image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
+    image = cv2.bilateralFilter(np.float32(image), 50, 1000, 1000)
+    if verbose:
+        save_photo('build/bilateral.jpg', image, True)
     image_uint8 = image.astype(np.uint8) 
-    edge_map = cv2.Canny(image_uint8,5,85)
+    edge_map = cv2.Canny(image_uint8,30,40)
     return edge_map
 
 
@@ -87,7 +92,24 @@ def plotCircles(image,circles_center,circles_radius):
     return fig
 
   
- 
+def hough2(img, verbose):
+  img = cv2.imread('images/day1/image39.jpg',0)
+  img = cv2.medianBlur(img,5)
+  cimg = cv2.cvtColor(img,cv2.COLOR_GRAY2BGR)
+
+  circles = cv2.HoughCircles(img,cv2.HOUGH_GRADIENT,1,20,
+                              param1=50,param2=30,minRadius=0,maxRadius=0)
+
+  circles = np.uint16(np.around(circles))
+  for i in circles[0,:]:
+      # draw the outer circle
+      cimg = cv2.circle(cimg,(i[0],i[1]),i[2],(0,255,0),2)
+      # draw the center of the circle
+      cimg = cv2.circle(cimg,(i[0],i[1]),2,(0,0,255),3)
+
+  if verbose:
+    util.save_photo('build/hough2.jpg', cimg, True)
+
 def hough(img, verbose):
     edges = img
     # Step 2: Detect circles in the image using Hough transform
@@ -177,3 +199,36 @@ def extract_frames():
             break
         cv2.imwrite( "build/frame%d.jpg" % count, image)     # save frame as JPEG file
         count = count + 1
+
+def pca():
+  cap = cv2.VideoCapture("images/day1/video4.mov")
+  subtractor = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=50, detectShadows=True)
+  # blur attempt
+  ksize = (25, 25)
+  flag = False
+  while True:
+    _, frame = cap.read()
+    frame_blur = cv2.blur(frame, ksize, cv2.BORDER_DEFAULT)
+    mask = subtractor.apply(frame_blur)
+    cv2.imshow("Frame", frame)
+    if flag and pre_sum > 0 and mask.sum() == 0:
+      avg_i = 0
+      avg_j = 0
+      cnt = 0
+      for i in range(pre_mask.shape[0]):
+        for j in range(pre_mask.shape[0]):
+          is_ball = int(pre_mask[i][j] > 0)
+          avg_i += is_ball * i
+          avg_j += is_ball * j
+          cnt   += is_ball
+      print("i=", int(avg_i/cnt), " j=", int(avg_j/cnt))
+    pre_sum = mask.sum()
+    pre_mask = mask.copy()
+    cv2.imshow("mask", mask)
+    # print(mask.sum())
+    flag = True
+    key = cv2.waitKey(30)
+    if key == 27:
+      break
+  cap.release()
+  cv2.destroyAllWindows()
