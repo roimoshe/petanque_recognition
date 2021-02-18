@@ -18,11 +18,13 @@ def bilateral_and_blur_step(img, verbose):
     return img
 
 def blur_step(img, verbose):
-    ksize = (100, 100)
+    BLUR_WEIGHT = 500
+    ksize = (BLUR_WEIGHT, BLUR_WEIGHT)
     return cv2.blur(img, ksize, cv2.BORDER_DEFAULT)
 
 def kmeans_step(img, verbose):
-    return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, 3, "max", original_image, verbose)
+    N_CLUSTERS = 3
+    return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, N_CLUSTERS, "max", original_image, verbose)
 
 def edge_detector_step(img, verbose):
     return util.edgeDetector(img, 2, verbose)
@@ -84,13 +86,13 @@ def main(arguments):
         print("image_num: ", args.image_num,", start step: ", args.step)
         if args.no_previous_step:
             print("no_previous_step choosen!!")
-        img_path = 'images/video4/frame{}.jpg'.format(args.image_num)
+        img_path = 'images/day1/image{}.jpg'.format(args.image_num)
         img = cv2.imread(img_path)
         original_image = img.copy()
         if not args.quick:
             util.save_photo('build/image{}.jpg'.format(args.image_num),img, True)
     else:
-        img_path = 'images/video4/frame{}.jpg'.format(args.image_num)
+        img_path = 'images/day1/image{}.jpg'.format(args.image_num)
         original_image = cv2.imread(img_path)
         print("image_num: ", args.image_num,", start step: ", args.step)
         img = cv2.imread('build/image{}_{}_{}.jpg'.format(args.image_num, args.step-1, plans[args.plan_num][args.step-2].name))

@@ -28,11 +28,11 @@ def edgeDetector(image, blur_size, verbose):
     ksize = (5, 5) #TODO figure out both of the parameters
     image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
 
-    if verbose:
+    if 0:
         save_photo('build/before_bilateral.jpg', image, True)
     image = cv2.medianBlur(image, 11)
     # image = cv2.bilateralFilter(np.float32(image), 20, 200, 200)
-    if verbose:
+    if 0:
         save_photo('build/bilateral.jpg', image, True)
     image_uint8 = image.astype(np.uint8)
     edge_map = cv2.Canny(image_uint8, 60, 120)
