@@ -36,7 +36,8 @@ def hough_lines_step(img, verbose):
     return lines.houghLines(img, original_image, verbose)
 
 def hough_circles_step(img, verbose):
-    return houghCircles.hough_circles(img, original_image, verbose)
+    THRESHOLD = 0.338
+    return houghCircles.hough_circles(img, THRESHOLD, original_image, verbose)
 
 def train():
     img = cv2.imread("images/day1/image38.png")

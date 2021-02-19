@@ -45,7 +45,7 @@ def filter_close_circles(circles_center1, verbose):
             print("x = ", center[0], " y = ", center[1], " r = ", z)
     return circles_center, circles_radius
 
-def HoughCircles(edge_map, verbose):
+def HoughCircles(edge_map, threshold_arg, verbose):
     new_edge_map = []
     for number in edge_map:
         new_edge_map.append(number / 255)  # making the edge_map contain values of only [1,0]
@@ -66,7 +66,7 @@ def HoughCircles(edge_map, verbose):
         image_max = ndi.maximum_filter(accumulator, size=20,
                                        mode='constant')  # finding local maximums in the convolution result (centers of circles)
         coordinates = peak_local_max(accumulator, min_distance=20, num_peaks=10)
-        threshold = 0.32 * (2 * np.pi * r)
+        threshold = threshold_arg * (2 * np.pi * r)
         answers = list(filter(lambda x: (accumulator[x[0]][x[1]] > threshold),
                               coordinates))  # checking only for local maximas over certain threshold
         for ans in answers:  # appending the results
@@ -102,10 +102,10 @@ def plotCircles(image, circles_center, circles_radius):
     return fig
 
 
-def hough_circles(img, original_image, verbose):
+def hough_circles(img, threshold_arg, original_image, verbose):
     edges = img
     # Step 2: Detect circles in the image using Hough transform
-    circles_center, circles_radius = HoughCircles(edges, verbose)
+    circles_center, circles_radius = HoughCircles(edges, threshold_arg, verbose)
     # Step 3: Plot the detected circles on top of the original coins image
     for i in range(len(circles_center)):
         # draw the outer circle
