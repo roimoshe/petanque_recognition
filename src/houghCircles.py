@@ -23,22 +23,41 @@ def createKernel(r):
     kernel = np.array(kernel).astype(int)
     return kernel
 
-def HoughCircles(edge_map, verbose):
+def filter_close_circles(circles_center1, verbose):
+    circles_center = []
+    circles_radius = []
+    for [x, y, z] in circles_center1:
+        is_new_circle = True
+        for i,center in enumerate(circles_center):
+            if abs(center[0]-x+center[1]-y) < z/2:
+                if circles_radius[i] < z:
+                    circles_center.pop(i)
+                    circles_radius.pop(i)
+                else:
+                    is_new_circle = False
+                break
+        if is_new_circle:
+            circles_center.append([x, y])
+            circles_radius.append(z)
+    if verbose:
+        for center,z in zip(circles_center, circles_radius):
+            print("x = ", center[0], " y = ", center[1], " r = ", z)
+    return circles_center, circles_radius
+
+def HoughCircles(edge_map, threshold_arg, hough_radius_range, verbose):
     new_edge_map = []
     for number in edge_map:
         new_edge_map.append(number / 255)  # making the edge_map contain values of only [1,0]
     new_edge_map = np.array(new_edge_map, dtype=np.int)
 
     circles_center1 = []
-    circles_center = []
-    circles_radius = []
 
     # for each radios
     # create circle for convolution
     # run the convolution on every pixle and save the result
     # find the resualts local maxima over a threshold if there are, and append them in the answer
 
-    for r in range(12, 18):
+    for r in range(hough_radius_range[0], hough_radius_range[1]):
         kernel = createKernel(r)  # creating the kernel for the matching radius
         accumulator = cv2.filter2D(new_edge_map, ddepth=cv2.CV_32S,
                                    kernel=kernel)  # convoluting the picture borders with the kernel
@@ -46,7 +65,7 @@ def HoughCircles(edge_map, verbose):
         image_max = ndi.maximum_filter(accumulator, size=20,
                                        mode='constant')  # finding local maximums in the convolution result (centers of circles)
         coordinates = peak_local_max(accumulator, min_distance=20, num_peaks=10)
-        threshold = 0.35 * (2 * np.pi * r)
+        threshold = threshold_arg * (2 * np.pi * r)
         answers = list(filter(lambda x: (accumulator[x[0]][x[1]] > threshold),
                               coordinates))  # checking only for local maximas over certain threshold
         for ans in answers:  # appending the results
@@ -61,11 +80,7 @@ def HoughCircles(edge_map, verbose):
             if flag == False:
                 circles_center1.append([ans[1], ans[0], r])
 
-    for [x, y, z] in circles_center1:
-        circles_center.append([x, y])
-        circles_radius.append(z)
-        if verbose:
-            print("x = ", x, " y = ", y, " r = ", z)
+    circles_center, circles_radius = filter_close_circles(circles_center1, verbose)
 
     return circles_center, circles_radius
 
@@ -86,10 +101,10 @@ def plotCircles(image, circles_center, circles_radius):
     return fig
 
 
-def hough_circles(img, original_image, verbose):
+def hough_circles(img, threshold_arg, hough_radius_range, original_image, verbose):
     edges = img
     # Step 2: Detect circles in the image using Hough transform
-    circles_center, circles_radius = HoughCircles(edges, verbose)
+    circles_center, circles_radius = HoughCircles(edges, threshold_arg, hough_radius_range, verbose)
     # Step 3: Plot the detected circles on top of the original coins image
     for i in range(len(circles_center)):
         # draw the outer circle
@@ -100,4 +115,6 @@ def hough_circles(img, original_image, verbose):
     if verbose:
         fig = plotCircles(img, circles_center, circles_radius)
         fig.savefig("build/circles_on_edge_map.png", dpi=400)
+    if len(circles_center)==0:
+        cimg=original_image.copy()
     return cimg
