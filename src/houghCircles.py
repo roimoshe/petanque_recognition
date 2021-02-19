@@ -29,7 +29,6 @@ def filter_close_circles(circles_center1, verbose):
     for [x, y, z] in circles_center1:
         is_new_circle = True
         for i,center in enumerate(circles_center):
-            print(center[0]-x+center[1]-y, z)
             if abs(center[0]-x+center[1]-y) < z/2:
                 if circles_radius[i] < z:
                     circles_center.pop(i)
@@ -45,7 +44,7 @@ def filter_close_circles(circles_center1, verbose):
             print("x = ", center[0], " y = ", center[1], " r = ", z)
     return circles_center, circles_radius
 
-def HoughCircles(edge_map, threshold_arg, verbose):
+def HoughCircles(edge_map, threshold_arg, hough_radius_range, verbose):
     new_edge_map = []
     for number in edge_map:
         new_edge_map.append(number / 255)  # making the edge_map contain values of only [1,0]
@@ -58,7 +57,7 @@ def HoughCircles(edge_map, threshold_arg, verbose):
     # run the convolution on every pixle and save the result
     # find the resualts local maxima over a threshold if there are, and append them in the answer
 
-    for r in range(28, 40):
+    for r in range(hough_radius_range[0], hough_radius_range[1]):
         kernel = createKernel(r)  # creating the kernel for the matching radius
         accumulator = cv2.filter2D(new_edge_map, ddepth=cv2.CV_32S,
                                    kernel=kernel)  # convoluting the picture borders with the kernel
@@ -102,10 +101,10 @@ def plotCircles(image, circles_center, circles_radius):
     return fig
 
 
-def hough_circles(img, threshold_arg, original_image, verbose):
+def hough_circles(img, threshold_arg, hough_radius_range, original_image, verbose):
     edges = img
     # Step 2: Detect circles in the image using Hough transform
-    circles_center, circles_radius = HoughCircles(edges, threshold_arg, verbose)
+    circles_center, circles_radius = HoughCircles(edges, threshold_arg, hough_radius_range, verbose)
     # Step 3: Plot the detected circles on top of the original coins image
     for i in range(len(circles_center)):
         # draw the outer circle
