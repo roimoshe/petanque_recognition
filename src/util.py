@@ -177,3 +177,57 @@ def pca():
             break
     cap.release()
     cv2.destroyAllWindows()
+
+# def find_y_position_below_half(h, theta, dy1, f):
+#     beta = np.arctan(dy1/f)
+#     y1 = (dy1*h*np.sin(90-beta)) / (f*np.sin(theta)*np.sin(theta+beta))
+#     return y1
+
+def find_y_position(h, theta, dy2, f, is_below_half):
+    factor = 1
+    if is_below_half:
+        factor = -1
+    alpha = np.arctan(dy2/f) * factor
+    y2 = (dy2*h*np.sin((np.pi/2)+alpha)) / (f*np.sin(theta)*np.sin(theta-alpha))
+    return y2
+
+def position():
+    # image1
+    # up_y = 560
+    # middle_y = 965
+    # down_y = 1345
+    # h = 54
+    # theta = 90-58 #degrees
+
+    # image2
+    up_y = 620
+    middle_y = 695
+    down_y = 1300
+    h = 50
+    theta = 90-73 #degrees
+
+    theta = (theta/180)*np.pi # radians
+    f=np.array([0.1 * i for i in range(5000,19000)])
+    # f=1766.1000000000001 # image1
+    # f=555.2 # image2
+
+    # # find pixels
+    img = cv2.imread("images/day1/ball_posotion/bp3_h50_theta73_x4.jpeg")
+    # mask = np.ones(img.shape[:2],np.uint8)
+    # x = 1000
+    # mask[up_y-10:up_y+10,x:x+50] = 0
+    # img_masked = cv2.bitwise_and(img,img,mask = mask)
+    # save_photo('build/ball_position.jpg',img_masked, True)
+    half_y = img.shape[0]/2
+    up_world_y     = (-1 * int((up_y     < half_y)) + 1 * int((up_y     > half_y))) * find_y_position(h, theta, abs(half_y-up_y),     f, (up_y     > half_y) )
+    middle_world_y = (-1 * int((middle_y < half_y)) + 1 * int((middle_y > half_y))) * find_y_position(h, theta, abs(half_y-middle_y), f, (middle_y > half_y) )
+    down_world_y   = (-1 * int((down_y   < half_y)) + 1 * int((down_y   > half_y))) * find_y_position(h, theta, abs(half_y-down_y),   f, (down_y   > half_y) )
+    ratio = (up_world_y-middle_world_y)/(middle_world_y-down_world_y)
+    print(min(np.abs(ratio-4)), f[np.argmin(np.abs(ratio-4))])
+    plt.plot(f,np.abs(ratio-4), 'r')
+    # show the plot
+    plt.show()
+    print("up ", up_world_y)
+    print("middle ", middle_world_y)
+    print("down ", down_world_y)
+    print("ratio ", ratio)

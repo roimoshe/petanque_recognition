@@ -57,13 +57,9 @@ def hough_lines_step(img, verbose, params):
 def hough_circles_step(img, verbose, params):
     return houghCircles.hough_circles(img, params.hough_threshold, params.hough_radius_range, original_image, verbose)
 
+
 def train():
-    img = cv2.imread("images/day1/image38.png")
-    ksize = (10, 10)
-    img = cv2.blur(img, ksize, cv2.BORDER_DEFAULT)
-    util.save_photo('build/blur_zoom_ball.jpg', img, True)
-    # util.save_photo('build/hough_zoom_ball.jpg', util.hough(img, True), True)
-    # util.pca()
+    util.position()
 
 main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(burn_blob_frame_step, "burn_blob_frame_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
 plans     = [ main_plan ] 
