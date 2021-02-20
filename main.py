@@ -69,7 +69,8 @@ def main(arguments):
     parser = argparse.ArgumentParser(description="Petanque recognition")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-e","--end_step", type=int, help="Input step number to end in", default=len(main_plan))
-    parser.add_argument("-i","--image_num", type=int, help="Input image number", default=1)
+    parser.add_argument("-i","--image_path", type=str, help="Input image number",  required=True)
+    parser.add_argument("-r","--run_num", type=int, help="Input run number", default=1)
     parser.add_argument("-p","--plan_num", type=int, help="Input plan number", default=0)
     parser.add_argument("-f","--frame", type=int, help="Input frame number", default=-1)
     parser.add_argument("-q","--quick", action='store_true', help="quick run, without saving any step")
@@ -83,12 +84,11 @@ def main(arguments):
     photo_params = Parameters(HOUGH_THRESHOLD_PHOTO, HOUGH_RADIUS_RANGE_PHOTO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS)
     video_params = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS)
 
+    img_path = args.image_path
     if args.image_format == "photo":
         params = photo_params
-        img_path = 'images/day1/photos/image{}.jpg'.format(args.image_num)
     elif args.image_format == "video":
         params = video_params
-        img_path = 'images/day1/videos/video{}frame{}.jpg'.format(args.image_num, args.frame)
     else:
         print("image_format: ", args.image_format," not supported")
     if args.clean:
@@ -104,33 +104,30 @@ def main(arguments):
     if args.plan_num >= len(plans):
         print("plan_num: ", args.plan_num," not supported")
         return 1
-    if args.image_num < 0 or args.step > 17:
-        print("image_num: ", args.image_num," not supported")
-        return 2
     if args.step < 1 or args.step > len(main_plan):
         print("step: ", args.step," not supported")
         return 3
     elif args.step  == 1 or args.no_previous_step:
-        print("image_num: ", args.image_num,", start step: ", args.step)
+        print("image_path: ", args.image_path,", start step: ", args.step)
         if args.no_previous_step:
             print("no_previous_step choosen!!")
         img = cv2.imread(img_path)
         original_image = img.copy()
         if not args.quick:
-            util.save_photo('build/image{}.jpg'.format(args.image_num),img, True)
+            util.save_photo('build/original_image_{}.jpg'.format(args.run_num),img, True)
     else:
-        img_path = 'images/day1/image{}.jpg'.format(args.image_num)
+        img_path = args.image_path
         original_image = cv2.imread(img_path)
-        print("image_num: ", args.image_num,", start step: ", args.step)
-        img = cv2.imread('build/image{}_{}_{}.jpg'.format(args.image_num, args.step-1, plans[args.plan_num][args.step-2].name))
+        print("image_path: ", args.image_path,", start step: ", args.step)
+        img = cv2.imread('build/image{}_{}_{}.jpg'.format(args.run_num, args.step-1, plans[args.plan_num][args.step-2].name))
 
     for i in range(args.step - 1, args.end_step):
         next_step = plans[args.plan_num][i]
         img = next_step.function(img, args.verbose, params)
         if not args.quick:
-            util.save_photo('build/{}{}_{}_{}.jpg'.format(args.image_format,args.image_num, i+1, next_step.name),img, True)
+            util.save_photo('build/{}{}_{}_{}.jpg'.format(args.image_format,args.run_num, i+1, next_step.name),img, True)
     if args.quick:
-        util.save_photo('build/image{}_step{}.jpg'.format(args.image_num, i+1),img, True)
+        util.save_photo('build/image{}_step{}.jpg'.format(args.run_num, i+1),img, True)
     return 0
 
 if __name__ == '__main__':
