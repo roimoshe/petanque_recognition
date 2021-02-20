@@ -48,16 +48,18 @@ def kmeans_step(img, verbose, params):
     return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, params.n_clusters, "max", original_image, verbose)
 
 def edge_detector_step(img, verbose, params):
+    global kmeans_img
+    kmeans_img = img
     return util.edgeDetector(img, params.edge_detector_blur_size, verbose)
 
 def burn_blob_frame_step(img, verbose, params):
     return util.burn_blob_frame_step(img, params.burning_size, verbose)
 
+def hough_circles_step(img, verbose, params):
+    return houghCircles.hough_circles(original_image, kmeans_img, img, params.hough_threshold, params.hough_radius_range, verbose)
+
 def hough_lines_step(img, verbose, params):
     return lines.houghLines(img, original_image, verbose)
-
-def hough_circles_step(img, verbose, params):
-    return houghCircles.hough_circles(img, params.hough_threshold, params.hough_radius_range, original_image, verbose)
 
 
 def train():

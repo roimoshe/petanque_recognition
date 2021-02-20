@@ -111,8 +111,17 @@ def couchonnet_finder(kmeans_img, verbose):
     # hsv = img
     kernel = createKernel(2)
 
-    lower = np.array([0, 150, 0], dtype="uint8")
-    upper = np.array([200, 255, 200], dtype="uint8")
+    green_lower = np.array([0, 150, 0], dtype="uint8")
+    green_upper = np.array([200, 255, 200], dtype="uint8")
+
+    blue_lower = np.array([94, 80, 2], dtype="uint8")
+    blue_upper = np.array([126, 255, 255], dtype="uint8")
+
+    purple_lower = np.array([260, 60, 55], dtype="uint8")
+    purple_upper = np.array([280, 70, 100], dtype="uint8")
+
+    lower = purple_lower
+    upper = purple_upper
 
     mask = cv2.inRange(hsv, lower, upper)
     output = cv2.bitwise_and(kmeans_img, kmeans_img, mask=mask)
@@ -134,29 +143,29 @@ def couchonnet_finder(kmeans_img, verbose):
     npar = np.array(accumulator)
     max_val = np.amax(npar)
     max_coords = npar.argmax(), npar.shape
-
+    print(coordinate)
     return coordinate
 
 
-def hough_circles(img, threshold_arg, hough_radius_range, original_image, verbose):
-    edges = img
+def hough_circles(original_image, kmeans, edges, threshold_arg, hough_radius_range, verbose):
     # Step 2: Detect circles in the image using Hough transform
     circles_center, circles_radius = HoughCircles(edges, threshold_arg, hough_radius_range, verbose)
     # Step 3: Plot the detected circles on top of the original coins image
+    cimg = original_image
     for i in range(len(circles_center)):
         # draw the outer circle
-        cimg = cv2.circle(original_image, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0),
+        cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0),
                           2)
         # draw the center of the circle
         cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), 2, (0, 0, 255), 3)
 
 
     # cochonnet detection--
-    co_center = couchonnet_finder(original_image, verbose) #TODO to change the original image for the after kmeans image
-    cimg = cv2.circle(img, (co_center[1], co_center[0]), 2, (255, 0, 0), 3)
+    co_center = couchonnet_finder(kmeans, verbose) #TODO to change the original image for the after kmeans image
+    cimg = cv2.circle(cimg, (co_center[1], co_center[0]), 10, (255, 0, 0), 10)
 
     if verbose:
-        fig = plotCircles(img, circles_center, circles_radius)
+        fig = plotCircles(edges, circles_center, circles_radius)
         fig.savefig("build/circles_on_edge_map.png", dpi=400)
     if len(circles_center) == 0:
         cimg = original_image.copy()
