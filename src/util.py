@@ -25,12 +25,12 @@ def burn_blob_frame_step(img, num_of_pixels, verbose):
     return cv2.bitwise_and(img,img,mask = mask)
 
 def edgeDetector(image, blur_size, verbose):
-    ksize = (5, 5) #TODO figure out both of the parameters
+    ksize = (blur_size, blur_size)
     image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
 
     if 0:
         save_photo('build/before_bilateral.jpg', image, True)
-    image = cv2.medianBlur(image, 11)
+    image = cv2.medianBlur(image, 17)
     # image = cv2.bilateralFilter(np.float32(image), 20, 200, 200)
     if 0:
         save_photo('build/bilateral.jpg', image, True)

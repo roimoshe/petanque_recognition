@@ -13,6 +13,7 @@ import numpy as np
 BLUR_SIZE = 500
 BURNING_SIZE = 100
 N_CLUSTERS = 3
+EDGE_DETECTOR_BLUR_SIZE = 5
 # format spesific params
 HOUGH_THRESHOLD_VIDEO = 0.338
 HOUGH_THRESHOLD_PHOTO = 0.33
@@ -24,12 +25,13 @@ class Step:
     self.function = function
     self.name = name
 class Parameters:
-  def __init__(self, hough_threshold, hough_radius_range, burning_size, blur_size, n_clusters):
-    self.hough_threshold    = hough_threshold
-    self.hough_radius_range = hough_radius_range
-    self.burning_size       = burning_size
-    self.blur_size          = blur_size
-    self.n_clusters         = n_clusters
+  def __init__(self, hough_threshold, hough_radius_range, burning_size, blur_size, n_clusters, edge_detector_blur_size):
+    self.hough_threshold         = hough_threshold
+    self.hough_radius_range      = hough_radius_range
+    self.burning_size            = burning_size
+    self.blur_size               = blur_size
+    self.n_clusters              = n_clusters
+    self.edge_detector_blur_size = edge_detector_blur_size
 
 def bilateral_and_blur_step(img, verbose):
     img = cv2.bilateralFilter(np.float32(img),15,800,800)
@@ -46,7 +48,7 @@ def kmeans_step(img, verbose, params):
     return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, params.n_clusters, "max", original_image, verbose)
 
 def edge_detector_step(img, verbose, params):
-    return util.edgeDetector(img, 2, verbose)
+    return util.edgeDetector(img, params.edge_detector_blur_size, verbose)
 
 def burn_blob_frame_step(img, verbose, params):
     return util.burn_blob_frame_step(img, params.burning_size, verbose)
@@ -62,7 +64,8 @@ def train():
     util.position()
 
 main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(burn_blob_frame_step, "burn_blob_frame_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
-plans     = [ main_plan ] 
+main_plan_no_burn = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
+plans     = [ main_plan, main_plan_no_burn ] 
 
 def main(arguments):
     global original_image
@@ -78,17 +81,20 @@ def main(arguments):
     parser.add_argument("-t","--train", action='store_true', help="train mode")
     parser.add_argument("-c","--clean", action='store_true', help="clean build")
     parser.add_argument("-N","--no_previous_step", action='store_true', help="run from step 'step' with the original photo")
-    parser.add_argument("-F","--image_format", type=str, help="image format - video/photo", default="photo")
+    parser.add_argument("-F","--image_format", type=str, help="image format - video/photo/day2", default="photo")
     args = parser.parse_args(arguments)
     
-    photo_params = Parameters(HOUGH_THRESHOLD_PHOTO, HOUGH_RADIUS_RANGE_PHOTO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS)
-    video_params = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS)
+    photo_params = Parameters(HOUGH_THRESHOLD_PHOTO, HOUGH_RADIUS_RANGE_PHOTO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE)
+    video_params = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE)
+    day2_params  = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE)
 
     img_path = args.image_path
     if args.image_format == "photo":
         params = photo_params
     elif args.image_format == "video":
         params = video_params
+    elif args.image_format == "day2":
+        params = day2_params
     else:
         print("image_format: ", args.image_format," not supported")
     if args.clean:
