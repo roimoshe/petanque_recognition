@@ -5,12 +5,14 @@ import time
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy import unravel_index
 from scipy import ndimage as ndi
 from skimage.feature import peak_local_max
 from skimage import io, color
 import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
 from . import util
+
 
 def createKernel(r):
     color = (255, 255, 255)
@@ -23,13 +25,14 @@ def createKernel(r):
     kernel = np.array(kernel).astype(int)
     return kernel
 
+
 def filter_close_circles(circles_center1, verbose):
     circles_center = []
     circles_radius = []
     for [x, y, z] in circles_center1:
         is_new_circle = True
-        for i,center in enumerate(circles_center):
-            if abs(center[0]-x+center[1]-y) < z/2:
+        for i, center in enumerate(circles_center):
+            if abs(center[0] - x + center[1] - y) < z / 2:
                 if circles_radius[i] < z:
                     circles_center.pop(i)
                     circles_radius.pop(i)
@@ -40,9 +43,10 @@ def filter_close_circles(circles_center1, verbose):
             circles_center.append([x, y])
             circles_radius.append(z)
     if verbose:
-        for center,z in zip(circles_center, circles_radius):
+        for center, z in zip(circles_center, circles_radius):
             print("x = ", center[0], " y = ", center[1], " r = ", z)
     return circles_center, circles_radius
+
 
 def HoughCircles(edge_map, threshold_arg, hough_radius_range, verbose):
     new_edge_map = []
@@ -68,7 +72,7 @@ def HoughCircles(edge_map, threshold_arg, hough_radius_range, verbose):
         threshold = threshold_arg * (2 * np.pi * r)
         answers = list(filter(lambda x: (accumulator[x[0]][x[1]] > threshold),
                               coordinates))  # checking only for local maximas over certain threshold
-        for ans in answers:  # appending the results
+        for ans in answers:  # appending the results while removing too close circles
             flag = False
             for point in circles_center1:
                 if abs(ans[0] - point[1]) + abs(ans[1] - point[0]) < 20:
@@ -101,6 +105,39 @@ def plotCircles(image, circles_center, circles_radius):
     return fig
 
 
+def couchonnet_finder(kmeans_img, verbose):
+    hsv = cv2.cvtColor(kmeans_img, cv2.COLOR_BGR2HSV)
+
+    # hsv = img
+    kernel = createKernel(2)
+
+    lower = np.array([0, 150, 0], dtype="uint8")
+    upper = np.array([200, 255, 200], dtype="uint8")
+
+    mask = cv2.inRange(hsv, lower, upper)
+    output = cv2.bitwise_and(kmeans_img, kmeans_img, mask=mask)
+
+    accumulator = cv2.filter2D(output, ddepth=cv2.CV_32S,
+                               kernel=kernel)
+    coordinate = [0, 0]
+    max = 0
+    for count, x in enumerate(accumulator):
+        for count2, y in enumerate(x):
+            sum = y[0] + y[1] + y[2]
+            if sum > max:
+                max = sum
+                coordinate = [count, count2]
+
+    print(max)
+    print("cords are ", coordinate)
+
+    npar = np.array(accumulator)
+    max_val = np.amax(npar)
+    max_coords = npar.argmax(), npar.shape
+
+    return coordinate
+
+
 def hough_circles(img, threshold_arg, hough_radius_range, original_image, verbose):
     edges = img
     # Step 2: Detect circles in the image using Hough transform
@@ -108,13 +145,21 @@ def hough_circles(img, threshold_arg, hough_radius_range, original_image, verbos
     # Step 3: Plot the detected circles on top of the original coins image
     for i in range(len(circles_center)):
         # draw the outer circle
-        cimg = cv2.circle(original_image, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0), 2)
+        cimg = cv2.circle(original_image, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0),
+                          2)
         # draw the center of the circle
         cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), 2, (0, 0, 255), 3)
-    
+
+
+    # cochonnet detection--
+    co_center = couchonnet_finder(original_image, verbose) #TODO to change the original image for the after kmeans image
+    cimg = cv2.circle(img, (co_center[1], co_center[0]), 2, (255, 0, 0), 3)
+
     if verbose:
         fig = plotCircles(img, circles_center, circles_radius)
         fig.savefig("build/circles_on_edge_map.png", dpi=400)
-    if len(circles_center)==0:
-        cimg=original_image.copy()
+    if len(circles_center) == 0:
+        cimg = original_image.copy()
+
+
     return cimg
