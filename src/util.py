@@ -24,13 +24,13 @@ def burn_blob_frame_step(img, num_of_pixels, verbose):
                 mask[y_u:y_d,x_l:x_r]=0
     return cv2.bitwise_and(img,img,mask = mask)
 
-def edgeDetector(image, blur_size, verbose):
+def edgeDetector(image, blur_size, median_blur_size, verbose):
     ksize = (blur_size, blur_size)
     image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
 
     if 0:
         save_photo('build/before_bilateral.jpg', image, True)
-    image = cv2.medianBlur(image, 17)
+    image = cv2.medianBlur(image, median_blur_size)
     # image = cv2.bilateralFilter(np.float32(image), 20, 200, 200)
     if 0:
         save_photo('build/bilateral.jpg', image, True)
@@ -231,3 +231,14 @@ def position():
     print("middle ", middle_world_y)
     print("down ", down_world_y)
     print("ratio ", ratio)
+
+def undistort():
+    img = cv2.imread('images/day2/photos/setup2/image0.jpeg')
+    h,  w = img.shape[:2]
+    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+    # undistort
+    dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+    # crop the image
+    x,y,w,h = roi
+    dst = dst[y:y+h, x:x+w]
+    cv2.imwrite('calibresult.png',dst)

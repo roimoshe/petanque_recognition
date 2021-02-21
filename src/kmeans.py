@@ -38,5 +38,5 @@ def kmeans(blurred_image, image_space_representation, n_clusters, min_max, origi
     labels = ndimage.binary_fill_holes(labels, structure=np.ones((11, 11))).astype(int)
     # labels = 1 - ndimage.binary_fill_holes(1 - labels, structure=np.ones((2, 2))).astype(int)
     labels = labels.reshape((w * h))
-    img_no_backgroung = recreate_image(clt.cluster_centers_, labels, w, h, original_image)
+    img_no_backgroung = recreate_image(clt.cluster_centers_, labels, w, h, original_image.copy())
     return img_no_backgroung

@@ -154,8 +154,7 @@ def hough_circles(original_image, kmeans, edges, threshold_arg, hough_radius_ran
     cimg = original_image
     for i in range(len(circles_center)):
         # draw the outer circle
-        cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0),
-                          2)
+        cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), circles_radius[i], (0, 255, 0), 2)
         # draw the center of the circle
         cimg = cv2.circle(cimg, (circles_center[i][0], circles_center[i][1]), 2, (0, 0, 255), 3)
 
