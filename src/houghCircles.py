@@ -107,27 +107,36 @@ def plotCircles(image, circles_center, circles_radius):
 
 def couchonnet_finder(kmeans_img, verbose):
     hsv = cv2.cvtColor(kmeans_img, cv2.COLOR_BGR2HSV)
-
-    # hsv = img
     kernel = createKernel(2)
 
-    green_lower = np.array([0, 150, 0], dtype="uint8")
-    green_upper = np.array([200, 255, 200], dtype="uint8")
+    RGB_green_lower = np.array([0, 200, 0], dtype="uint8")
+    RGB_green_upper = np.array([100, 255, 100], dtype="uint8")
 
     blue_lower = np.array([94, 80, 2], dtype="uint8")
     blue_upper = np.array([126, 255, 255], dtype="uint8")
 
-    purple_lower = np.array([260, 60, 55], dtype="uint8")
-    purple_upper = np.array([280, 70, 100], dtype="uint8")
+    RGB_purple_lower = np.array([20, 20, 280], dtype="uint8")
+    RGB_purple_upper = np.array([100, 100, 310], dtype="uint8")
 
-    lower = purple_lower
-    upper = purple_upper
+    orange_lower = np.array([35, 30, 97], dtype="uint8")
+    orange_upper = np.array([50, 70, 100], dtype="uint8")
+
+    HSV_purple_lower = np.array([130 ,133, 141])
+    HSV_purple_upper = np.array([132, 170, 241])
+
+    lower = HSV_purple_lower
+    upper = HSV_purple_upper
 
     mask = cv2.inRange(hsv, lower, upper)
     output = cv2.bitwise_and(kmeans_img, kmeans_img, mask=mask)
 
     accumulator = cv2.filter2D(output, ddepth=cv2.CV_32S,
                                kernel=kernel)
+    if verbose:
+        util.save_photo('build/hsv_color_detection_part.jpg', hsv, True)
+        util.save_photo('build/color_detection_output.jpg', output, True)
+        util.save_photo('build/color_detection_mask.jpg', mask, True)
+        util.save_photo('build/color_detection_acc.jpg', accumulator, True)
     coordinate = [0, 0]
     max = 0
     for count, x in enumerate(accumulator):
@@ -137,13 +146,6 @@ def couchonnet_finder(kmeans_img, verbose):
                 max = sum
                 coordinate = [count, count2]
 
-    print(max)
-    print("cords are ", coordinate)
-
-    npar = np.array(accumulator)
-    max_val = np.amax(npar)
-    max_coords = npar.argmax(), npar.shape
-    print(coordinate)
     return coordinate
 
 
