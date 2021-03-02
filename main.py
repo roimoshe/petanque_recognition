@@ -1,5 +1,5 @@
 # commands:
-# photo: python3 main.py -i 55 -c -F photo
+# photo: python3 main.py -i images/day2/photos/setup2/image18.jpeg -c -F setup2 -v
 # video: python3 main.py -i 4 -c -F video -f 4
 import cv2
 import sys
@@ -17,13 +17,14 @@ EDGE_DETECTOR_BLUR_SIZE = 5
 # format spesific params
 HOUGH_THRESHOLD_VIDEO = 0.338
 HOUGH_THRESHOLD_PHOTO = 0.33
-
+HOUGH_THRESHOLD_SETUP2 = 0.20
 HOUGH_RADIUS_RANGE_VIDEO = [12,18]
 HOUGH_RADIUS_RANGE_PHOTO = [28,40]
+HOUGH_RADIUS_RANGE_SETUP2 = [45,60]
 MEDIAN_BLUR_SIZE_DAY1 = 11
 MEDIAN_BLUR_SIZE_DAY2 = 17
 BURNING_SIZE_DAY1 = 100
-BURNING_SIZE_DAY2 = 50
+BURNING_SIZE_DAY2 = 0
 class Step:
   def __init__(self, function, name):
     self.function = function
@@ -68,7 +69,7 @@ def hough_lines_step(img, verbose, params):
 
 
 def train():
-    util.undistort()
+    print("empty train")
 
 main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(burn_blob_frame_step, "burn_blob_frame_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
 main_plan_no_burn = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
@@ -93,7 +94,7 @@ def main(arguments):
     
     photo_params = Parameters(HOUGH_THRESHOLD_PHOTO, HOUGH_RADIUS_RANGE_PHOTO, BURNING_SIZE_DAY1, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY1)
     video_params = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE_DAY1, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY1)
-    day2_params  = Parameters(HOUGH_THRESHOLD_PHOTO, HOUGH_RADIUS_RANGE_PHOTO, BURNING_SIZE_DAY2, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY2)
+    setup2_params  = Parameters(HOUGH_THRESHOLD_SETUP2, HOUGH_RADIUS_RANGE_SETUP2, BURNING_SIZE_DAY2, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY2) # image18 works good
 
     img_path = args.image_path
     if args.image_format == "photo":
@@ -102,6 +103,8 @@ def main(arguments):
         params = video_params
     elif args.image_format == "day2":
         params = day2_params
+    elif args.image_format == "setup2":
+        params = setup2_params
     else:
         print("image_format: ", args.image_format," not supported")
     if args.clean:

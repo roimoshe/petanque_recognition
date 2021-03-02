@@ -192,12 +192,13 @@ def find_y_position(h, theta, dy2, f, is_below_half):
     return y2
 
 def position():
-    # image1
+    # # image1
     # up_y = 560
     # middle_y = 965
     # down_y = 1345
     # h = 54
     # theta = 90-58 #degrees
+    # ratio_world = 2
 
     # image2
     up_y = 620
@@ -205,9 +206,10 @@ def position():
     down_y = 1300
     h = 50
     theta = 90-73 #degrees
+    ratio_world = 0.25
 
     theta = (theta/180)*np.pi # radians
-    f=np.array([0.1 * i for i in range(5000,19000)])
+    f=np.array([0.1 * i for i in range(15000,30000)])
     # f=1766.1000000000001 # image1
     # f=555.2 # image2
 
@@ -223,8 +225,8 @@ def position():
     middle_world_y = (-1 * int((middle_y < half_y)) + 1 * int((middle_y > half_y))) * find_y_position(h, theta, abs(half_y-middle_y), f, (middle_y > half_y) )
     down_world_y   = (-1 * int((down_y   < half_y)) + 1 * int((down_y   > half_y))) * find_y_position(h, theta, abs(half_y-down_y),   f, (down_y   > half_y) )
     ratio = (up_world_y-middle_world_y)/(middle_world_y-down_world_y)
-    print(min(np.abs(ratio-4)), f[np.argmin(np.abs(ratio-4))])
-    plt.plot(f,np.abs(ratio-4), 'r')
+    print(min(np.abs(ratio/ratio_world - 1)), f[np.argmin(np.abs(ratio/ratio_world - 1))])
+    plt.plot(f,np.abs(ratio/ratio_world - 1), 'r')
     # show the plot
     plt.show()
     print("up ", up_world_y)
