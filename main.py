@@ -1,5 +1,5 @@
 # commands:
-# photo: python3 main.py -i images/day2/photos/setup2/image18.jpeg -c -F setup2 -v
+# photo: python3 main.py -i images/day2/photos/setup2/image16.jpeg -c -F setup2 -v
 # video: python3 main.py -i 4 -c -F video -f 4
 import cv2
 import sys
@@ -20,7 +20,7 @@ HOUGH_THRESHOLD_PHOTO = 0.33
 HOUGH_THRESHOLD_SETUP2 = 0.20
 HOUGH_RADIUS_RANGE_VIDEO = [12,18]
 HOUGH_RADIUS_RANGE_PHOTO = [28,40]
-HOUGH_RADIUS_RANGE_SETUP2 = [45,60]
+HOUGH_RADIUS_RANGE_SETUP2 = [35,70]
 MEDIAN_BLUR_SIZE_DAY1 = 11
 MEDIAN_BLUR_SIZE_DAY2 = 17
 BURNING_SIZE_DAY1 = 100
