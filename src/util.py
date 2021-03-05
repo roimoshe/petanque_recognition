@@ -244,3 +244,18 @@ def undistort():
     x,y,w,h = roi
     dst = dst[y:y+h, x:x+w]
     cv2.imwrite('calibresult.png',dst)
+
+def plotCircles(image, circles_center, circles_radius):
+    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+    ax.imshow(image, cmap="gray")
+    ax.title.set_text("Detected Circles")
+
+    # Replace with code to mark the center of the circles by a yellow point
+    ax.plot([tpl[0] for tpl in circles_center], [tpl[1] for tpl in circles_center], 'o', color='yellow')
+
+    # Replace with code to draw the circumference of the circles in blue
+    for center_coordinates, radius in zip(circles_center, circles_radius):
+        circ = plt.Circle(center_coordinates, radius, color='blue', fill=False)
+        ax.add_artist(circ)
+    # plt.imsave("output.png", image)
+    return fig

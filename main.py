@@ -17,14 +17,15 @@ EDGE_DETECTOR_BLUR_SIZE = 5
 # format spesific params
 HOUGH_THRESHOLD_VIDEO = 0.338
 HOUGH_THRESHOLD_PHOTO = 0.33
-HOUGH_THRESHOLD_SETUP2 = 0.20
+HOUGH_THRESHOLD_SETUP2 = 0.18 # 0.19 wont work on image25/setup2
 HOUGH_RADIUS_RANGE_VIDEO = [12,18]
 HOUGH_RADIUS_RANGE_PHOTO = [28,40]
-HOUGH_RADIUS_RANGE_SETUP2 = [35,70]
+HOUGH_RADIUS_RANGE_SETUP2 = [42,70]
 MEDIAN_BLUR_SIZE_DAY1 = 11
 MEDIAN_BLUR_SIZE_DAY2 = 17
 BURNING_SIZE_DAY1 = 100
 BURNING_SIZE_DAY2 = 0
+
 class Step:
   def __init__(self, function, name):
     self.function = function
@@ -62,7 +63,10 @@ def burn_blob_frame_step(img, verbose, params):
     return util.burn_blob_frame_step(img, params.burning_size, verbose)
 
 def hough_circles_step(img, verbose, params):
-    return houghCircles.hough_circles(original_image, kmeans_img, img, params.hough_threshold, params.hough_radius_range, verbose)
+    return houghCircles.hough_circles(original_image, kmeans_img, img, params.hough_threshold, params.hough_radius_range, verbose, balls, cochonnet)
+# TODO: can move team detection out of last step
+def world_position_step(img, verbose, params):
+    return world_position.find_balls_world_position(img, balls, cochonnet, verbose)
 
 def hough_lines_step(img, verbose, params):
     return lines.houghLines(img, original_image, verbose)
@@ -71,12 +75,25 @@ def hough_lines_step(img, verbose, params):
 def train():
     print("empty train")
 
-main_plan = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(burn_blob_frame_step, "burn_blob_frame_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
-main_plan_no_burn = [Step(blur_step, "blur_step"), Step(kmeans_step, "kmeans_step"), Step(edge_detector_step, "edge_detector_step"), Step(hough_circles_step, "hough_circles_step")]
-plans     = [ main_plan, main_plan_no_burn ] 
+main_plan = [Step(blur_step, "blur_step"),
+             Step(kmeans_step, "kmeans_step"),
+             Step(edge_detector_step, "edge_detector_step"),
+             Step(hough_circles_step, "hough_circles_step"),
+             Step(world_position_step, "world_position_step")]
+main_plan_with_burn = [ Step(blur_step, "blur_step"),
+              Step(kmeans_step, "kmeans_step"),
+              Step(burn_blob_frame_step, "burn_blob_frame_step"),
+              Step(edge_detector_step, "edge_detector_step"),
+              Step(hough_circles_step, "hough_circles_step"),
+              Step(world_position_step, "world_position_step") ]
+plans     = [ main_plan, main_plan_with_burn ] 
 
 def main(arguments):
     global original_image
+    global balls
+    global cochonnet
+    cochonnet = []
+    balls = []
     parser = argparse.ArgumentParser(description="Petanque recognition")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-e","--end_step", type=int, help="Input step number to end in", default=len(main_plan))
@@ -137,7 +154,7 @@ def main(arguments):
         print("image_path: ", args.image_path,", start step: ", args.step)
         img = cv2.imread('build/image{}_{}_{}.jpg'.format(args.run_num, args.step-1, plans[args.plan_num][args.step-2].name))
 
-    for i in range(args.step - 1, args.end_step):
+    for i in range(args.step - 1, min(args.end_step, len(plans[args.plan_num]))):
         next_step = plans[args.plan_num][i]
         img = next_step.function(img, args.verbose, params)
         if not args.quick:

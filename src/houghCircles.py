@@ -13,6 +13,15 @@ import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
 from . import util
 
+class Ball:
+  def __init__(self, img_ball_only, radius, center, edge_map, sum_edges, team_num, center_world_position):
+    self.img_ball_only = img_ball_only
+    self.radius = radius
+    self.center = center
+    self.center_world_position = center_world_position
+    self.edge_map = edge_map
+    self.sum_edges = sum_edges
+    self.team_num = team_num
 
 def createKernel(r):
     color = (255, 255, 255)
@@ -32,7 +41,7 @@ def filter_close_circles(circles_center1, verbose):
     for [x, y, z] in circles_center1:
         is_new_circle = True
         for i, center in enumerate(circles_center):
-            if abs(center[0] - x + center[1] - y) < z / 2:
+            if abs(center[0] - x + center[1] - y) < z:
                 if circles_radius[i] < z:
                     circles_center.pop(i)
                     circles_radius.pop(i)
@@ -88,23 +97,6 @@ def HoughCircles(edge_map, threshold_arg, hough_radius_range, verbose):
 
     return circles_center, circles_radius
 
-
-def plotCircles(image, circles_center, circles_radius):
-    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-    ax.imshow(image, cmap="gray")
-    ax.title.set_text("Detected Circles")
-
-    # Replace with code to mark the center of the circles by a yellow point
-    ax.plot([tpl[0] for tpl in circles_center], [tpl[1] for tpl in circles_center], 'o', color='yellow')
-
-    # Replace with code to draw the circumference of the circles in blue
-    for center_coordinates, radius in zip(circles_center, circles_radius):
-        circ = plt.Circle(center_coordinates, radius, color='blue', fill=False)
-        ax.add_artist(circ)
-    # plt.imsave("output.png", image)
-    return fig
-
-
 def couchonnet_finder(kmeans_img, verbose):
     hsv = cv2.cvtColor(kmeans_img, cv2.COLOR_BGR2HSV)
     kernel = createKernel(2)
@@ -148,49 +140,35 @@ def couchonnet_finder(kmeans_img, verbose):
 
     return coordinate
 
-
-class Ball:
-  def __init__(self, img_ball_only, radius, center, edge_map, sum_edges, team_num):
-    self.img_ball_only = img_ball_only
-    self.radius = radius
-    self.center = center
-    self.edge_map = edge_map
-    self.sum_edges = sum_edges
-    self.team_num = team_num
-
-def teams_detection(original_image, circles_center, circles_radius, verbose):
+def teams_detection(original_image, circles_center, circles_radius, verbose, balls):
     h, w = original_image.shape[:2]
-    ball_masked_imgs = []
+    # mask ball only
     for center, radius in zip(circles_center, circles_radius):
         Y, X = np.ogrid[:h, :w]
         dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
         mask = np.zeros(original_image.shape[:2],np.uint8)
         mask[dist_from_center <= 0.8*radius] = 1
         img_ball_only = cv2.bitwise_and(original_image,original_image,mask = mask)
-        ball_masked_imgs.append(Ball(img_ball_only, radius, center, None, None, None))
+        balls.append(Ball(img_ball_only, radius, center, None, None, None, None))
     if verbose:
-        for i in range(len(ball_masked_imgs)):
-            util.save_photo('build/ball_masked_img{}.jpg'.format(i), ball_masked_imgs[i].img_ball_only, True)
+        for i in range(len(balls)):
+            util.save_photo('build/ball_masked_img{}.jpg'.format(i), balls[i].img_ball_only, True)
     
-    for i in range(len(ball_masked_imgs)):
-        curr_ball = ball_masked_imgs[i]
+    for i,curr_ball in enumerate(balls):
         edge_map = cv2.Canny(curr_ball.img_ball_only, 200, 500) / 255
         curr_ball.edge_map = edge_map
         curr_ball.sum_edges = (np.sum(edge_map) - 2*curr_ball.radius*np.pi)/ (curr_ball.radius*np.pi**2)
         if verbose:
             util.save_photo('build/edge_map{}.jpg'.format(i), edge_map*255, True)
             print("ball", i, "sum", curr_ball.sum_edges)
-        curr_ball.team_num = int(curr_ball.sum_edges > 0.2)
-    return ball_masked_imgs
-        
+        curr_ball.team_num = int(curr_ball.sum_edges > 0.35) # all the range 0.41-0.31 is good setup 2 image25
+        print("curr_ball.sum_edges = ", curr_ball.sum_edges, "curr_ball.center", curr_ball.center)
 
-
-
-def hough_circles(original_image, kmeans, edges, threshold_arg, hough_radius_range, verbose):
+def hough_circles(original_image, kmeans, edges, threshold_arg, hough_radius_range, verbose, balls, cochonnet):
     # Detect circles in the image using Hough transform
     circles_center, circles_radius = HoughCircles(edges, threshold_arg, hough_radius_range, verbose)
     # Teams detection
-    balls = teams_detection(original_image, circles_center, circles_radius, verbose)
+    teams_detection(original_image, circles_center, circles_radius, verbose, balls)
 
     # Plot the detected circles on top of the original coins image
     cimg = original_image.copy()
@@ -200,18 +178,16 @@ def hough_circles(original_image, kmeans, edges, threshold_arg, hough_radius_ran
             color = (0,255,0)
         else:
             color = (255, 0 ,0)
-        cimg = cv2.circle(cimg, (curr_ball.center[0], curr_ball.center[1]), curr_ball.radius, color, 2)
+        cimg = cv2.circle(cimg, (curr_ball.center[0], curr_ball.center[1]), int(0.85*curr_ball.radius), color, 2)
         # draw the center of the circle
-        cimg = cv2.circle(cimg, (curr_ball.center[0], curr_ball.center[1]), 2, (0, 0, 255), 3)
+        cimg = cv2.circle(cimg, (curr_ball.center[0], curr_ball.center[1]), 2, (0, 0, 0), 3)
 
     # cochonnet detection--
     co_center = couchonnet_finder(kmeans, verbose) #TODO to change the original image for the after kmeans image
-    cimg = cv2.circle(cimg, (co_center[1], co_center[0]), 10, (255, 0, 0), 10)
+    cimg = cv2.circle(cimg, (co_center[1], co_center[0]), 10, (0, 0, 255), 10)
+    cochonnet.append(co_center[0])
+    cochonnet.append(co_center[1])
 
-
-    if verbose:
-        fig = plotCircles(edges, circles_center, circles_radius)
-        fig.savefig("build/circles_on_edge_map.png", dpi=400)
     if len(circles_center) == 0:
         cimg = original_image.copy()
 
