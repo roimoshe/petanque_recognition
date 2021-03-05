@@ -24,7 +24,7 @@ HOUGH_RADIUS_RANGE_SETUP2 = [42,70]
 MEDIAN_BLUR_SIZE_DAY1 = 11
 MEDIAN_BLUR_SIZE_DAY2 = 17
 BURNING_SIZE_DAY1 = 100
-BURNING_SIZE_DAY2 = 0
+BURNING_SIZE_DAY2 = 20
 
 class Step:
   def __init__(self, function, name):
@@ -54,6 +54,9 @@ def blur_step(img, verbose, params):
 def kmeans_step(img, verbose, params):
     return kmeans.kmeans(img, cv2.COLOR_BGR2LAB, params.n_clusters, "max", original_image, verbose)
 
+def remove_background_step(img, verbose, params):
+    return kmeans.remove_background("max", original_image, verbose)
+
 def edge_detector_step(img, verbose, params):
     global kmeans_img
     kmeans_img = img
@@ -66,7 +69,10 @@ def hough_circles_step(img, verbose, params):
     return houghCircles.hough_circles(original_image, kmeans_img, img, params.hough_threshold, params.hough_radius_range, verbose, balls, cochonnet)
 # TODO: can move team detection out of last step
 def world_position_step(img, verbose, params):
-    return world_position.find_balls_world_position(img, balls, cochonnet, verbose)
+    return world_position.find_balls_world_position(img, balls, cochonnet_obj, cochonnet, verbose)
+
+def add_legend_step(img, verbose, params):
+    return legend.add_legend(img, balls, cochonnet_obj, verbose)
 
 def hough_lines_step(img, verbose, params):
     return lines.houghLines(img, original_image, verbose)
@@ -77,9 +83,12 @@ def train():
 
 main_plan = [Step(blur_step, "blur_step"),
              Step(kmeans_step, "kmeans_step"),
+             Step(remove_background_step, "remove_background_step"),
+             Step(burn_blob_frame_step, "burn_blob_frame_step"),
              Step(edge_detector_step, "edge_detector_step"),
              Step(hough_circles_step, "hough_circles_step"),
-             Step(world_position_step, "world_position_step")]
+             Step(world_position_step, "world_position_step"),
+             Step(add_legend_step, "add_legend_step")]
 main_plan_with_burn = [ Step(blur_step, "blur_step"),
               Step(kmeans_step, "kmeans_step"),
               Step(burn_blob_frame_step, "burn_blob_frame_step"),
@@ -92,8 +101,10 @@ def main(arguments):
     global original_image
     global balls
     global cochonnet
-    cochonnet = []
+    global cochonnet_obj
+    cochonnet_obj = houghCircles.Cochonnet(None, None)
     balls = []
+    cochonnet = []
     parser = argparse.ArgumentParser(description="Petanque recognition")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-e","--end_step", type=int, help="Input step number to end in", default=len(main_plan))
@@ -161,6 +172,7 @@ def main(arguments):
             util.save_photo('build/{}{}_{}_{}.jpg'.format(args.image_format,args.run_num, i+1, next_step.name),img, True)
     if args.quick:
         util.save_photo('build/image{}_step{}.jpg'.format(args.run_num, i+1),img, True)
+
     return 0
 
 if __name__ == '__main__':

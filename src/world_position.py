@@ -83,15 +83,15 @@ def draw_positions(img, balls, world_cochonnet):
             color = (255, 0 ,0)
         x = int(w-w/6 + 5 * curr_ball.center_world_position[1])
         y = int(h/6 + 5 * curr_ball.center_world_position[0])
-        cimg = cv2.circle(cimg, (x, y), 8, color, 3)
+        cimg = cv2.circle(cimg, (x, y), 10, color, -1)
     
     # cochonnet
     x_co = int(w-w/6 + 5 * world_cochonnet[1])
     y_co = int(h/6 + 5 * world_cochonnet[0])
-    cimg = cv2.circle(cimg, (x_co, y_co), 3, (0, 0, 255), 2)
+    cimg = cv2.circle(cimg, (x_co, y_co), 4, (0, 0, 255), 2)
     return cimg 
 
-def find_balls_world_position(img, balls, cochonnet,  verbose):
+def find_balls_world_position(img, balls, cochonnet_obj, cochonnet,  verbose):
     _THETA = 63
 
     THETA = ((90-_THETA)/180)*np.pi
@@ -106,6 +106,8 @@ def find_balls_world_position(img, balls, cochonnet,  verbose):
     x_world_cochonnet = find_x_position(H, THETA, F, mid_x, mid_y, x_image_cochonnet, y_image_cochonnet)
     y_world_cochonnet = (-1 * int((y_image_cochonnet     < mid_y)) + 1 * int((y_image_cochonnet > mid_y))) * find_y_position(H, THETA, abs(mid_y-y_image_cochonnet), F, (y_image_cochonnet > mid_y) )
     world_cochonnet = [y_world_cochonnet,x_world_cochonnet]
+    cochonnet_obj.center_image_pos = [x_image_cochonnet, y_image_cochonnet]
+    cochonnet_obj.center_world_pos = [y_world_cochonnet, x_world_cochonnet]
     # circles_center = []
     # circles_radius = []
 

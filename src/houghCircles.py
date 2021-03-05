@@ -14,7 +14,7 @@ from sklearn.cluster import KMeans
 from . import util
 
 class Ball:
-  def __init__(self, img_ball_only, radius, center, edge_map, sum_edges, team_num, center_world_position):
+  def __init__(self, img_ball_only, radius, center, edge_map, sum_edges, team_num, center_world_position, distance):
     self.img_ball_only = img_ball_only
     self.radius = radius
     self.center = center
@@ -22,6 +22,11 @@ class Ball:
     self.edge_map = edge_map
     self.sum_edges = sum_edges
     self.team_num = team_num
+    self.distance = distance
+class Cochonnet:
+  def __init__(self, center_image_pos, center_world_pos):
+    self.center_image_pos = center_image_pos
+    self.center_world_pos = center_world_pos
 
 def createKernel(r):
     color = (255, 255, 255)
@@ -149,7 +154,7 @@ def teams_detection(original_image, circles_center, circles_radius, verbose, bal
         mask = np.zeros(original_image.shape[:2],np.uint8)
         mask[dist_from_center <= 0.8*radius] = 1
         img_ball_only = cv2.bitwise_and(original_image,original_image,mask = mask)
-        balls.append(Ball(img_ball_only, radius, center, None, None, None, None))
+        balls.append(Ball(img_ball_only, radius, center, None, None, None, None, None))
     if verbose:
         for i in range(len(balls)):
             util.save_photo('build/ball_masked_img{}.jpg'.format(i), balls[i].img_ball_only, True)
@@ -158,11 +163,11 @@ def teams_detection(original_image, circles_center, circles_radius, verbose, bal
         edge_map = cv2.Canny(curr_ball.img_ball_only, 200, 500) / 255
         curr_ball.edge_map = edge_map
         curr_ball.sum_edges = (np.sum(edge_map) - 2*curr_ball.radius*np.pi)/ (curr_ball.radius*np.pi**2)
+        curr_ball.team_num = int(curr_ball.sum_edges > 0.35) # all the range 0.41-0.31 is good setup 2 image25
         if verbose:
             util.save_photo('build/edge_map{}.jpg'.format(i), edge_map*255, True)
             print("ball", i, "sum", curr_ball.sum_edges)
-        curr_ball.team_num = int(curr_ball.sum_edges > 0.35) # all the range 0.41-0.31 is good setup 2 image25
-        print("curr_ball.sum_edges = ", curr_ball.sum_edges, "curr_ball.center", curr_ball.center)
+            print("curr_ball.sum_edges = ", curr_ball.sum_edges, "curr_ball.center", curr_ball.center)
 
 def hough_circles(original_image, kmeans, edges, threshold_arg, hough_radius_range, verbose, balls, cochonnet):
     # Detect circles in the image using Hough transform

@@ -10,8 +10,10 @@ from skimage.feature import peak_local_max
 from skimage import io, color
 import matplotlib.image as mpimg
 from sklearn.cluster import KMeans
-
-
+from PIL import Image
+import time
+# from PIL import Image, ImageFile
+# ImageFile.LOAD_TRUNCATED_IMAGES = True
 def burn_blob_frame_step(img, num_of_pixels, verbose):
     mask = np.ones(img.shape[:2],np.uint8)
     for i in range(img.shape[0]):
@@ -27,13 +29,7 @@ def burn_blob_frame_step(img, num_of_pixels, verbose):
 def edgeDetector(image, blur_size, median_blur_size, verbose):
     ksize = (blur_size, blur_size)
     image = cv2.blur(image, ksize, cv2.BORDER_DEFAULT)
-
-    if 0:
-        save_photo('build/before_bilateral.jpg', image, True)
     image = cv2.medianBlur(image, median_blur_size)
-    # image = cv2.bilateralFilter(np.float32(image), 20, 200, 200)
-    if 0:
-        save_photo('build/bilateral.jpg', image, True)
     image_uint8 = image.astype(np.uint8)
     edge_map = cv2.Canny(image_uint8, 60, 120)
     return edge_map
@@ -259,3 +255,13 @@ def plotCircles(image, circles_center, circles_radius):
         ax.add_artist(circ)
     # plt.imsave("output.png", image)
     return fig
+
+def gen_gif(flow_images):
+    # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#gif
+    flow_images[0].save(fp="build/flow.gif", format='GIF', append_images=flow_images[1:],
+         save_all=True, duration=200, loop=0)
+
+def add_img_to_arr_PIL(flow_images, img):
+    cv2.imwrite("tmp/image.jpg", img)
+    time.sleep(2)
+    flow_images.append(Image.open("tmp/image.jpg"))
