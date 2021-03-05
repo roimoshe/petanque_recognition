@@ -26,6 +26,18 @@ MEDIAN_BLUR_SIZE_DAY2 = 17
 BURNING_SIZE_DAY1 = 100
 BURNING_SIZE_DAY2 = 20
 
+class color:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
+
 class Step:
   def __init__(self, function, name):
     self.function = function
@@ -102,13 +114,10 @@ def main(arguments):
     global balls
     global cochonnet
     global cochonnet_obj
-    cochonnet_obj = houghCircles.Cochonnet(None, None)
-    balls = []
-    cochonnet = []
     parser = argparse.ArgumentParser(description="Petanque recognition")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-e","--end_step", type=int, help="Input step number to end in", default=len(main_plan))
-    parser.add_argument("-i","--image_path", type=str, help="Input image number",  required=True)
+    parser.add_argument("-i","--image_path", type=str, help="Input image number")
     parser.add_argument("-r","--run_num", type=int, help="Input run number", default=1)
     parser.add_argument("-p","--plan_num", type=int, help="Input plan number", default=0)
     parser.add_argument("-f","--frame", type=int, help="Input frame number", default=-1)
@@ -116,6 +125,7 @@ def main(arguments):
     parser.add_argument("-v","--verbose", action='store_true', help="verbosity level")
     parser.add_argument("-t","--train", action='store_true', help="train mode")
     parser.add_argument("-c","--clean", action='store_true', help="clean build")
+    parser.add_argument("-u","--user", action='store_true', help="user execution")
     parser.add_argument("-N","--no_previous_step", action='store_true', help="run from step 'step' with the original photo")
     parser.add_argument("-F","--image_format", type=str, help="image format - video/photo/day2", default="photo")
     args = parser.parse_args(arguments)
@@ -124,7 +134,17 @@ def main(arguments):
     video_params = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE_DAY1, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY1)
     setup2_params  = Parameters(HOUGH_THRESHOLD_SETUP2, HOUGH_RADIUS_RANGE_SETUP2, BURNING_SIZE_DAY2, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY2) # image18 works good
 
+    if args.user:
+        image_num = 1
+        args.run_num = image_num
+        args.image_path = "images/final/image{}.jpeg".format(image_num)
+        args.clean = True
+        args.image_format = "setup2"
+        args.plan_num = 0
+
+        
     img_path = args.image_path
+
     if args.image_format == "photo":
         params = photo_params
     elif args.image_format == "video":
@@ -151,28 +171,36 @@ def main(arguments):
     if args.step < 1 or args.step > len(main_plan):
         print("step: ", args.step," not supported")
         return 3
-    elif args.step  == 1 or args.no_previous_step:
-        print("image_path: ", args.image_path,", start step: ", args.step)
-        if args.no_previous_step:
-            print("no_previous_step choosen!!")
+    
+    if args.user:
+        print(color.BOLD + "start process image {}".format(image_num) + color.END)
+
+    while True:
+        cochonnet_obj = houghCircles.Cochonnet(None, None)
+        balls = []
+        cochonnet = []
+
         img = cv2.imread(img_path)
         original_image = img.copy()
         if not args.quick:
-            util.save_photo('build/original_image_{}.jpg'.format(args.run_num),img, True)
-    else:
-        img_path = args.image_path
-        original_image = cv2.imread(img_path)
-        print("image_path: ", args.image_path,", start step: ", args.step)
-        img = cv2.imread('build/image{}_{}_{}.jpg'.format(args.run_num, args.step-1, plans[args.plan_num][args.step-2].name))
+            util.save_photo('build/{}_image{}_{}_{}.jpg'.format(args.image_format,args.run_num, 0, "original"),img, True)
 
-    for i in range(args.step - 1, min(args.end_step, len(plans[args.plan_num]))):
-        next_step = plans[args.plan_num][i]
-        img = next_step.function(img, args.verbose, params)
-        if not args.quick:
-            util.save_photo('build/{}{}_{}_{}.jpg'.format(args.image_format,args.run_num, i+1, next_step.name),img, True)
-    if args.quick:
-        util.save_photo('build/image{}_step{}.jpg'.format(args.run_num, i+1),img, True)
 
+        for i in range(args.step - 1, min(args.end_step, len(plans[args.plan_num]))):
+            next_step = plans[args.plan_num][i]
+            print("execute {}..".format(next_step.name))
+            img = next_step.function(img, args.verbose, params)
+            if not args.quick:
+                util.save_photo('build/{}_image{}_{}_{}.jpg'.format(args.image_format,args.run_num, i+1, next_step.name),img, True)
+        if args.quick:
+            util.save_photo('build/image{}_step{}.jpg'.format(args.run_num, i+1),img, True)
+        image_num+=1
+        if (not args.user) or (image_num > 6):
+            break
+        img_path = "images/final/image{}.jpeg".format(image_num)
+        args.run_num = image_num
+        print(color.BOLD + "start process image {}".format(image_num) + color.END)
+    
     return 0
 
 if __name__ == '__main__':

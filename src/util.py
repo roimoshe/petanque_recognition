@@ -123,7 +123,7 @@ def kmeans(img_path, image_space_representation):
 def save_photo(path, img, verbosity):
     cv2.imwrite(path, img)
     if verbosity:
-        print("image saved in: {}".format(path))
+        print("\tresult image saved in: {}".format(path))
 
 
 def extract_frames():
