@@ -11,7 +11,7 @@ def add_winner_title(img, title):
     font_size = 1.3
     font_color = BLACK
     font_thickness = 2
-    x,y = 10,int(w-w/3)+20
+    x,y = int(width-width/3)+130,45
     img_text = cv2.putText(img, title, (x,y), font, font_size, font_color, font_thickness, cv2.LINE_AA)
 
     return img_text
