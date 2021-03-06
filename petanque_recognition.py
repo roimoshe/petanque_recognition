@@ -78,7 +78,7 @@ def burn_blob_frame_step(img, verbose, params):
     return util.burn_blob_frame_step(img, params.burning_size, verbose)
 
 def hough_circles_step(img, verbose, params):
-    return houghCircles.hough_circles(original_image, kmeans_img, img, params.hough_threshold, params.hough_radius_range, verbose, balls, cochonnet)
+    return houghCircles.hough_circles(original_image, kmeans_img, img, params.hough_threshold, params.hough_radius_range, verbose, balls, cochonnet, image_num)
 # TODO: can move team detection out of last step
 def world_position_step(img, verbose, params):
     return world_position.find_balls_world_position(img, balls, cochonnet_obj, cochonnet, verbose)
@@ -91,6 +91,7 @@ def hough_lines_step(img, verbose, params):
 
 
 def train():
+    util.pca()
     print("empty train")
 
 main_plan = [Step(blur_step, "blur_step"),
@@ -114,6 +115,7 @@ def main(arguments):
     global balls
     global cochonnet
     global cochonnet_obj
+    global image_num
     parser = argparse.ArgumentParser(description="Petanque recognition")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from", default=1)
     parser.add_argument("-e","--end_step", type=int, help="Input step number to end in", default=len(main_plan))

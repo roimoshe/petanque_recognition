@@ -142,7 +142,7 @@ def extract_frames():
 
 
 def pca():
-    cap = cv2.VideoCapture("images/day1/video4.mov")
+    cap = cv2.VideoCapture("images/day1/videos/video4.mov")
     subtractor = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=50, detectShadows=True)
     # blur attempt
     ksize = (25, 25)
@@ -152,21 +152,8 @@ def pca():
         frame_blur = cv2.blur(frame, ksize, cv2.BORDER_DEFAULT)
         mask = subtractor.apply(frame_blur)
         cv2.imshow("Frame", frame)
-        if flag and pre_sum > 0 and mask.sum() == 0:
-            avg_i = 0
-            avg_j = 0
-            cnt = 0
-            for i in range(pre_mask.shape[0]):
-                for j in range(pre_mask.shape[0]):
-                    is_ball = int(pre_mask[i][j] > 0)
-                    avg_i += is_ball * i
-                    avg_j += is_ball * j
-                    cnt += is_ball
-            print("i=", int(avg_i / cnt), " j=", int(avg_j / cnt))
-        pre_sum = mask.sum()
         pre_mask = mask.copy()
         cv2.imshow("mask", mask)
-        # print(mask.sum())
         flag = True
         key = cv2.waitKey(30)
         if key == 27:
@@ -174,11 +161,7 @@ def pca():
     cap.release()
     cv2.destroyAllWindows()
 
-# def find_y_position_below_half(h, theta, dy1, f):
-#     beta = np.arctan(dy1/f)
-#     y1 = (dy1*h*np.sin(90-beta)) / (f*np.sin(theta)*np.sin(theta+beta))
-#     return y1
-
+# debug functions to test position inferring
 def find_y_position(h, theta, dy2, f, is_below_half):
     factor = 1
     if is_below_half:
