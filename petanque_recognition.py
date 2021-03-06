@@ -7,6 +7,7 @@ from src import *
 import argparse
 import shutil
 import os
+import errno
 import numpy as np
 
 # general params
@@ -111,6 +112,11 @@ main_plan_with_burn = [ Step(blur_step, "blur_step"),
 plans     = [ main_plan, main_plan_with_burn ] 
 
 def main(arguments):
+    try:
+        os.makedirs('build')
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
     global original_image
     global balls
     global cochonnet
