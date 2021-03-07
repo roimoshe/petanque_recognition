@@ -123,11 +123,11 @@ def main(arguments):
     global cochonnet_obj
     global image_num
     parser = argparse.ArgumentParser(description="Petanque recognition")
-    parser.add_argument("-i","--image_path", type=str, help="Input image relative path")
+    parser.add_argument("-u","--user", action='store_true', help="Simple user execution that dont require any additional flag")
+    parser.add_argument("-i","--image_path", type=str, help="Input image relative path", default=None)
     parser.add_argument("-v","--verbose", action='store_true', help="verbosity level")
     parser.add_argument("-c","--clean", action='store_true', help="clean build")
     parser.add_argument("-q","--quick", action='store_true', help="quick run, without saving any step")
-    parser.add_argument("-u","--user", action='store_true', help="user execution")
     parser.add_argument("-s","--step", type=int, help="Input step number to start from - FOR DEBUG", default=1)
     parser.add_argument("-e","--end_step", type=int, help="Input step number to end in - FOR DEBUG", default=len(main_plan))
     parser.add_argument("-r","--run_num", type=int, help="Input run number - FOR DEBUG", default=1)
@@ -135,13 +135,16 @@ def main(arguments):
     parser.add_argument("-f","--frame", type=int, help="Input frame number - FOR DEBUG", default=-1)
     parser.add_argument("-t","--train", action='store_true', help="train mode - FOR DEBUG")
     parser.add_argument("-N","--no_previous_step", action='store_true', help="run from step 'step' with the original photo - FOR DEBUG")
-    parser.add_argument("-F","--image_format", type=str, help="image format - video/photo/day2 - FOR DEBUG", default="photo")
+    parser.add_argument("-F","--image_format", type=str, help="image format - video/photo/day2 - FOR DEBUG", default="setup2")
     args = parser.parse_args(arguments)
     
     photo_params = Parameters(HOUGH_THRESHOLD_PHOTO, HOUGH_RADIUS_RANGE_PHOTO, BURNING_SIZE_DAY1, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY1)
     video_params = Parameters(HOUGH_THRESHOLD_VIDEO, HOUGH_RADIUS_RANGE_VIDEO, BURNING_SIZE_DAY1, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY1)
     setup2_params  = Parameters(HOUGH_THRESHOLD_SETUP2, HOUGH_RADIUS_RANGE_SETUP2, BURNING_SIZE_DAY2, BLUR_SIZE, N_CLUSTERS, EDGE_DETECTOR_BLUR_SIZE, MEDIAN_BLUR_SIZE_DAY2) # image18 works good
 
+    if (not args.image_path==None) and args.user:
+        print("you can not choose --user and -i together, please choose only one of those")
+        return 1
     if args.user:
         image_num = 1
         args.run_num = image_num
@@ -149,6 +152,8 @@ def main(arguments):
         args.clean = True
         args.image_format = "setup2"
         args.plan_num = 0
+    else:
+        image_num = 0
 
         
     img_path = args.image_path
