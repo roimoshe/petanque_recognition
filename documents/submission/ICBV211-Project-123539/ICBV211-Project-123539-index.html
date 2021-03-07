@@ -27,15 +27,109 @@
 <hr>
 
 <h3 align="left"> Introduction </h3>
+<h3 align="left"> Petanque game rules:</h4>
 <p align="justify">
-Describe here your motivation, goals, and the general idea which your project pursues.
+Petanque’s objective is to score the most points by getting the boules closer to the target than the opponent. This is achieved by throwing or rolling boules closer to the small target boule (officially called ‘Cochonnet’) or by hitting the opponent’s boules away from it. The game takes place while standing inside a circle with both feet on the ground.	
 </p>
 
+<p>
+We wanted to create an application that can help petanque players. This app will have the following capabilities, for static pictures or short movies:
+<ol>
+	<li> Detect all boules in the field, and divide them into teams (according to the boule pattern)
+	</li><li> Detect each boule’s world position and create an up-view mapping of the game
+	</li><li> Detect the cochonnet and measure its distance from each boule
+	</li><li> Provide a constant update on the game status -  who is leading and who’s turn is it is 
+	</li></ol>
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture2.jpg" width="600" height="750"/> <br />
+
+
+
+
 <h3 align="left"> Approach and Method</h3>
-<p align="justify">
-Describe here how you addressed the problem, what observations or ideas you employed, what computational tools you used, etc...
-If it could simplify the presentation, go ahead and use several subsections here, or split this section into
-several sections.
+<h3 align="left"> Background subtraction via K-means (segmentations detection algorithm)</h4>
+<p align="justify"> 
+	In order to focus on the main playboard of the processed image and filter unnecessary noise, we wanted to mask the background. In this way we could enhance the future edge detection with more consummate parameters. The recommended method is using bilateral filtering for sharpening the edges and then K-means algorithm. While using this method we encountered numerous problems such as:
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture3.jpg" width="900" height="900"/> <br />
+
+<h3 align="left"> Hough lines</h4>
+<p>
+In order to create a smaller clearer polygon for further analysis, we tried using the Hough lines method, with the field borders narrowing the picture. By doing this, we could delete irrelevant parts of the masked image (the output of the first K-means stage).
+We encountered numerous problems here:
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture4.jpg" width="900" height="300"/> <br />
+<p>
+Decision:
+Due to implementation problems, the results were not good enough. Consequently, we decided to use different methods to identify only the relevant parts.
+</p>
+
+<h3 align="left"> Frame burning</h4>
+<p>
+The K-means part returns the main part of the picture including the field. However, because the original picture was extremely blurry, the edge frames of the field (the concrete frames) were also displayed. In order to subtract them we created a burning algorithm that decreases the edges of each blob and reduces the noise in each picture.
+Example:		
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture5.jpg" width="900" height="300"/> <br />
+
+<h3 align="left"> Edges detection via Canny’s algorithm (static pictures) </h4>
+<p>
+In this part we wanted to detect the game boules. In order to achieve better results we used a masked picture of the field.
+We encountered the following problems in this part:		
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture6.jpg" width="700" height="800"/> <br />
+
+<h3 align="left"> Edges detection via PCA background subtraction: </h4>
+<p>
+While the first edge detection was usable for static pictures, we wanted to detect edges in videos as well. We used a PCA background algorithm that works as follows:	
+<ol>
+	<li> The algorithm perceives the structure of the background before the boules are thrown, and remembers it
+	</li><li> Boules are thrown
+	</li><li> The algorithm identifies the differences between the pictures (with and without the boules) and locates the boules according 
+	</li></ol>
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture7.jpg" width="700" height="200"/> <br />
+
+<h3 align="left"> Cochonnet detection </h4>
+<p>
+In this part we wanted to identify the cochonnet. The main characteristic of the cochonnet is a relatively solid color which is distinct from its surroundings. We therefore tried to identify it by color. We analyzed the pixels by color, and left only pixels that match the color spectrum. After a few tries we understood that we will have to subtract ‘noise’ coming from pixels that share the cochonnet’s color. Furthermore we needed to strengthen the colors of the cochonnet. We therefore decided to convolute the picture with a small kernel to enhance the cochonnet area and delete “noise”.  
+</p>
+<img src="ICBV211-Project-123539-html_images/Picture8.jpg" width="700" height="200"/> <br /> <br /> <br /> <br />
+<img src="ICBV211-Project-123539-html_images/Picture9.jpg" width="900" height="900"/> <br />
+
+<h3 align="left"> Team boules detection </h4>
+	<p>
+		After locating the boules in the picture we wanted to divide them into teams. It is apparent that one of the teams has grooved boules whilst the other has smooth boules.
+		We therefore wanted to use edge detection in order to find the boules that will have more edges inside.
+		The main problem was to find suitable parameters for the edge detection and differentiate between edges inside boules to edges outside. In order to achieve the desired results we:		
+	<ol>
+		<li> Masked the entire picture for each boule
+		</li><li> Masked 20% of the outside layer of the specific boule’s radius in order to “clean noise” and avoid wrong boule detection 
+		</li><li> Measured the edges inside each boule and normalized the values relatively to the boule area, using the formula - (sum of edges – boule’s diameter) / boule's area
+		</li><li> We counted sums of over 0.2 to be the team with groves, and under 0.2 to be the smooth team
+		</li></ol>
+	</p>
+	<img src="ICBV211-Project-123539-html_images/Picture91.jpg" width="900" height="900"/> <br />
+
+	<h3 align="left"> 3D depth and locations geometric calculation  </h4>
+		<p>
+			In order to find the closest boule to the cochonnet, we needed to create a geometric projection to find where the boules are actually located.
+			In order to make these calculations we relied on the following parameters:
+
+		<ol>
+			<li>      F of the camera
+			</li><li> The height of the camera (can be obtained by common phone sensors)
+			</li><li> The angle of the camera (can be obtained by common phone sensors)
+			</li></ol>
+		</p>
+		<img src="ICBV211-Project-123539-html_images/Picture93.jpg" width="600" height="600"/> <br />
+		<img src="ICBV211-Project-123539-html_images/Picture94.jpg" width="600" height="600"/> <br />
+		<img src="ICBV211-Project-123539-html_images/Picture95.jpg" width="600" height="600"/> <br />
+		<img src="ICBV211-Project-123539-html_images/Picture96.jpg" width="600" height="600"/> <br />
+
+
+
+
+<p>
 </p>
 
 <h3 align="left"> Results</h3>
