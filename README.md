@@ -1,6 +1,8 @@
-# petanque_recognition
-Final project in Final project of Introduction to Computational and Biological Vision course - petanque recognition
+# Petanque game recognition application
+Final project of Introduction to Computational and Biological Vision course - petanque recognition
 By Roi Moshe and Yuval Rappaport
+
+The project is fully represented here - https://www.cs.bgu.ac.il/~icbv211/Projects_Archive/Petanque_Recognition
 
 # Usage
 For simple user run, use the following command:
